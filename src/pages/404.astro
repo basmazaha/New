@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';  // ← غيّر حسب هيكل مشروعك
+
+---
+
+<BaseLayout title=" Error 404">
+  <div class="error-container">
+    <h1>404</h1>
+    <p> رابط غير صالح أو منتهي الصلاحية 
+     <br> Invalid or expired link
+    </p>
+
+     <a href="/" class="home-link">
+     العودة إلى الصفحة الرئيسية
+      <br> Back to Homepage
+    </a>
+
+  </div>
+  </BaseLayout>
+
+<style>
+    .error-container {
+      text-align: center;
+      padding: 8rem 2rem;
+      min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 8rem;
+      margin: 0;
+      color: #ef4444;
+      line-height: 1;
+    }
+
+    p {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 2.5rem;
+      color: #4b5563;
+    }
+
+    .home-link {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      background: #3b82f6;
+      color: white;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .home-link:hover {
+      background: #2563eb;
+    }
+  </style>
