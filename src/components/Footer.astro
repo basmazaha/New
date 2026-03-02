@@ -1,0 +1,56 @@
+---
+const currentYear = new Date().getFullYear();
+const pathname = Astro.url.pathname;
+const isEnglish = pathname.startsWith('/en');
+const lang = isEnglish ? 'en' : 'ar';
+
+const footerText = {
+  ar: {
+    copyright: `© ${currentYear} جميع الحقوق محفوظة`,
+    madeWith: 'صُنع بـ',
+    withLove: 'بحب ❤️ في مصر'
+  },
+  en: {
+    copyright: `© ${currentYear} All rights reserved`,
+    madeWith: 'Made with',
+    withLove: 'with love ❤️ in Egypt'
+  }
+};
+
+const t = (key) => footerText[lang][key] || key;
+---
+
+<footer class="main-footer">
+  <div class="footer-container">
+    <p class="copyright">{t('copyright')}</p>
+    <p class="made-with">
+      {t('madeWith')} <span class="astro">Astro</span> {t('withLove')}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .main-footer {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 3rem 1.5rem 2rem;
+    margin-top: auto;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .footer-container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .copyright {
+    opacity: 0.8;
+    margin-bottom: 0.5rem;
+  }
+
+  .astro {
+    color: #ff3e00;
+    font-weight: bold;
+  }
+</style>

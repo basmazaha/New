@@ -1,0 +1,265 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+// تحديد اللغة الحالية
+const pathname = Astro.url.pathname;
+const isEnglish = pathname.startsWith('/en');
+const currentLang = isEnglish ? 'en' : 'ar';
+const otherLang = isEnglish ? 'ar' : 'en';
+
+const langIcon = '🌐';
+const langShort = otherLang === 'ar' ? 'ع' : 'EN';
+
+// تنظيف المسار من بادئة اللغة + الاحتفاظ بالـ hash إن وجد
+let cleanPath = pathname.replace(/^\/(en|ar)/, '');
+if (!cleanPath || cleanPath === '') cleanPath = '/';
+const hash = Astro.url.hash || '';
+
+// قائمة الروابط
+const navLinks = [
+  { name: currentLang === 'ar' ? 'اتصل بنا' : 'Contact us', href: '/contact' },
+  { name: currentLang === 'ar' ? 'من نحن' : 'About', href: '/about' },
+  { name: currentLang === 'ar' ? 'الرئيسية' : 'Home', href: '/' },
+
+];
+---
+
+<nav class="main-navbar" aria-label="التنقل الرئيسي">
+  <div class="navbar-container">
+    <!-- زر تغيير اللغة -->
+    <a 
+      href={getRelativeLocaleUrl(otherLang, cleanPath) + hash}
+      class="lang-switcher"
+      aria-label={`تبديل اللغة إلى ${otherLang.toUpperCase()}`}
+      data-lang-switch
+    >
+      {langIcon} <span class="lang-short">{langShort}</span>
+    </a>
+
+    <!-- اللوجو -->
+    <a href={getRelativeLocaleUrl(currentLang, '/')} class="navbar-logo">
+      Logo
+    </a>
+
+    <!-- زر الهمبرغر (موبايل فقط) -->
+    <button 
+      class="menu-toggle" 
+      aria-label="فتح القائمة" 
+      aria-expanded="false"
+      aria-controls="nav-menu"
+    >
+      <span class="hamburger"></span>
+    </button>
+
+    <!-- قائمة الروابط -->
+    <ul id="nav-menu" class="nav-links">
+      {
+        navLinks.map(link => (
+          <li>
+            <a href={getRelativeLocaleUrl(currentLang, link.href)}>
+              {link.name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .main-navbar {
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+  }
+
+  .navbar-container {
+    direction: ltr;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .navbar-logo {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #1e40af;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .lang-switcher {
+    display: flex;
+    max-width: 3.5rem;
+    min-width: 3.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.4rem;
+    color: #1e40af;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50%;
+    background: rgba(30,64,175,0.05);
+    transition: all 0.25s ease;
+    z-index: 10;
+  }
+
+  .lang-switcher:hover {
+    background: rgba(30,64,175,0.15);
+    transform: scale(1.1);
+  }
+
+  .lang-short {
+    font-size: 0.95rem;
+    font-weight: bold;
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  .hamburger,
+  .hamburger::before,
+  .hamburger::after {
+    display: block;
+    width: 28px;
+    height: 3px;
+    background: #1e40af;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+
+  .hamburger { position: relative; }
+  .hamburger::before { content: ''; position: absolute; left: 0; top: -9px; }
+  .hamburger::after  { content: ''; position: absolute; left: 0; bottom: -9px; }
+
+  .nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2rem;
+  }
+
+  .nav-links li a {
+    color: blue;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 1.05rem;
+    transition: color 0.2s ease;
+  }
+
+  .nav-links li a:hover { color: #1e40af; }
+
+  @media (max-width: 768px) {
+    .menu-toggle { display: block; }
+
+    .nav-links {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      left: 0;
+      background: white;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 0;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      transform: translateY(-20px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .nav-links.active {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-links li { margin: 1rem 0; }
+    .nav-links li a { font-size: 1.25rem; }
+
+    .lang-switcher {
+      right: 4rem;
+    }
+
+    html[lang="ar"] .lang-switcher {
+      right: auto;
+      left: 4rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  // ────────────────────────────────────────────────
+  //    دالة التهيئة الرئيسية
+  // ────────────────────────────────────────────────
+  function setupHamburger() {
+    const toggle = document.querySelector('.menu-toggle');
+    const menu = document.querySelector('#nav-menu');
+
+    if (!toggle || !menu) return;
+
+    // إزالة أي listeners قديمة (عن طريق clone → replace)
+    const newToggle = toggle.cloneNode(true);
+    toggle.parentNode.replaceChild(newToggle, toggle);
+
+    // إضافة listener جديد
+    newToggle.addEventListener('click', (e) => {
+      e.stopPropagation(); // منع انتشار الـ click للـ document
+      const isExpanded = menu.classList.toggle('active');
+      newToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    });
+
+    // إغلاق عند الضغط خارج القائمة (مرة واحدة فقط)
+    const closeHandler = (e) => {
+      if (!menu.contains(e.target) && !newToggle.contains(e.target)) {
+        menu.classList.remove('active');
+        newToggle.setAttribute('aria-expanded', 'false');
+      }
+    };
+
+    document.addEventListener('click', closeHandler);
+
+    // تنظيف الـ listener عند الـ transition التالية
+    document.addEventListener('astro:before-swap', () => {
+      document.removeEventListener('click', closeHandler);
+    }, { once: true });
+  }
+
+  // ────────────────────────────────────────────────
+  //    التشغيل
+  // ────────────────────────────────────────────────
+  function runSetup() {
+    setupHamburger();
+  }
+
+  // أول تحميل
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runSetup, { once: true });
+  } else {
+    runSetup();
+  }
+
+  // بعد كل navigation داخلي (الأهم)
+  document.addEventListener('astro:page-load', runSetup);
+
+  // احتياطي قوي: بعد الـ swap مباشرة
+  document.addEventListener('astro:after-swap', runSetup);
+</script>
