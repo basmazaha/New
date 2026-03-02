@@ -1,0 +1,501 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations } from '../../i18n/utils.ts';
+import { createClient } from '@supabase/supabase-js';
+
+const t = useTranslations(Astro.currentLocale);
+
+const { token } = Astro.params;
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+);
+
+const { data: appointment, error } = await supabase
+  .from('appointments')
+  .select('id, full_name, email, appointment_date, appointment_time, reason, status')
+  .eq('manage_token', token)
+  .maybeSingle();
+
+if (error || !appointment) {
+  return Astro.redirect('/404');
+}
+
+const url = new URL(Astro.request.url);
+const successParam = url.searchParams.get('success');
+const errorParam   = url.searchParams.get('error');
+const msgParam     = url.searchParams.get('msg');
+
+let successMessage = null;
+let errorMessage   = null;
+let infoMessage    = null;
+
+if (successParam === 'cancelled') {
+  successMessage = t('manage.success_cancelled');
+} else if (msgParam === 'already_processed') {
+  infoMessage = t('manage.already_processed');
+}
+
+if (errorParam === 'cancel_failed') {
+  errorMessage = t('manage.cancel_failed');
+} else if (errorParam) {
+  errorMessage = errorParam;
+}
+
+// ──────────────────────────────────────────────
+//              نصوص الصفحة مترجمة
+// ──────────────────────────────────────────────
+const pageTitle              = t('manage.title');
+const currentAppointmentText = t('manage.current_appointment');
+const nameLabel              = t('manage.name');
+const dateLabel              = t('manage.date');
+const timeLabel              = t('manage.time');
+const reasonLabel            = t('manage.reason');
+const cancelButtonText       = t('manage.cancel_button');
+const rescheduleButtonText   = t('manage.reschedule_button');
+const cancelledButtonText    = t('manage.cancelled_button');
+const appointmentCancelledText = t('manage.appointment_cancelled');
+const confirmTitle           = t('manage.confirm_title');
+const confirmText            = t('manage.confirm_text');
+const modalCancelBtnText     = t('manage.modal_cancel_btn');
+const modalConfirmBtnText    = t('manage.modal_confirm_btn');
+const cancellingText         = t('manage.cancelling');
+const cancelSuccessText      = t('manage.cancel_success');
+const cancelErrorText        = t('manage.cancel_error');
+const notAvailableText       = t('manage.not_available_after');
+
+// تنسيق التاريخ والوقت حسب اللغة
+const formattedDate = appointment.appointment_date
+  ? new Date(appointment.appointment_date).toLocaleDateString(Astro.currentLocale, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  : '—';
+
+const formattedTime = appointment.appointment_time
+  ? new Date(`1970-01-01T${appointment.appointment_time}`).toLocaleTimeString(Astro.currentLocale, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
+  : '—';
+---
+
+<BaseLayout title={pageTitle}>
+  <div class="manage-container">
+    <!-- رسائل الحالة -->
+    {successMessage && (
+      <div class="alert success">{successMessage}</div>
+    )}
+    {errorMessage && (
+      <div class="alert error">{errorMessage}</div>
+    )}
+    {infoMessage && (
+      <div class="alert info">{infoMessage}</div>
+    )}
+
+    <h1>{pageTitle}</h1>
+
+    <div class="current-appointment">
+      <h3>{currentAppointmentText}</h3>
+
+      <p>
+        <strong>{nameLabel}:</strong>
+        {appointment.full_name}
+      </p>
+
+      <p>
+        <strong>{dateLabel}:</strong>
+        {formattedDate}
+      </p>
+
+      <p>
+        <strong>{timeLabel}:</strong>
+        {formattedTime}
+      </p>
+
+      {appointment.reason && (
+        <p>
+          <strong>{reasonLabel}:</strong>
+          {appointment.reason}
+        </p>
+      )}
+
+      {appointment.status === 'cancelled' && (
+        <p class="cancelled-notice">{appointmentCancelledText}</p>
+      )}
+    </div>
+
+    <!-- رسالة حالة الإلغاء (تظهر ديناميكياً) -->
+    <div id="cancelMessage" class="alert hidden"></div>
+
+    <div class="actions">
+      <a
+        href={`/reschedule/${token}`}
+        class="btn reschedule"
+        id="rescheduleLink"
+      >
+        {rescheduleButtonText}
+      </a>
+
+      <button
+        id="cancelButton"
+        class="btn cancel"
+        data-booking-id={appointment.id}
+        data-token={token}
+        disabled={appointment.status === 'cancelled'}
+      >
+        {appointment.status === 'cancelled' ? cancelledButtonText : cancelButtonText}
+      </button>
+    </div>
+  </div>
+
+  <!-- نافذة التأكيد (Modal) -->
+  <div id="cancelModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">{confirmTitle}</h3>
+      <p id="modalText">{confirmText}</p>
+
+      <div class="modal-buttons">
+        <button id="modalCancelBtn" class="modal-btn secondary">
+          {modalCancelBtnText}
+        </button>
+        <button id="modalConfirmBtn" class="modal-btn danger">
+          {modalConfirmBtnText}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cancelButton   = document.getElementById('cancelButton');
+    const rescheduleLink = document.getElementById('rescheduleLink');
+    const messageDiv     = document.getElementById('cancelMessage');
+    const modal          = document.getElementById('cancelModal');
+
+    const locale = document.documentElement.lang || 'ar';
+    const isArabic = locale.startsWith('ar');
+
+    // نصوص ثابتة مباشرة (بدون حقن من Astro)
+    const txtCancelling          = isArabic ? 'جاري الإلغاء...'                : 'Cancelling...';
+    const txtCancelSuccess       = isArabic ? 'تم إلغاء الموعد بنجاح'          : 'Appointment cancelled successfully';
+    const txtCancelError         = isArabic ? 'حدث خطأ أثناء الإلغاء'          : 'An error occurred while cancelling';
+    const txtCancelledButton     = isArabic ? 'تم الإلغاء'                     : 'Cancelled';
+    const txtNotAvailable        = isArabic ? 'غير متاح بعد الإلغاء'           : 'Not available after cancellation';
+    const txtOriginalCancelBtn   = isArabic ? 'إلغاء الموعد'                   : 'Cancel Appointment';
+    const txtModalTitle          = isArabic ? 'تأكيد الإلغاء'                  : 'Confirm Cancellation';
+    const txtModalText           = isArabic ? 'هل أنت متأكد من إلغاء هذا الموعد؟' : 'Are you sure you want to cancel this appointment?';
+    const txtModalCancelBtn      = isArabic ? 'لا، تراجع'                      : 'No, go back';
+    const txtModalConfirmBtn     = isArabic ? 'نعم، ألغِ'                      : 'Yes, cancel';
+
+    // تحديث نصوص المودال عند التحميل (اختياري لكن يضمن التوافق)
+    if (document.getElementById('modalTitle')) {
+        document.getElementById('modalTitle').textContent = txtModalTitle;
+    }
+    if (document.getElementById('modalText')) {
+        document.getElementById('modalText').textContent = txtModalText;
+    }
+    if (document.getElementById('modalCancelBtn')) {
+        document.getElementById('modalCancelBtn').textContent = txtModalCancelBtn;
+    }
+    if (document.getElementById('modalConfirmBtn')) {
+        document.getElementById('modalConfirmBtn').textContent = txtModalConfirmBtn;
+    }
+
+    function showCancelModal() {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideCancelModal() {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'visible';
+    }
+
+    // إغلاق المودال بالنقر خارج المحتوى
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            hideCancelModal();
+        }
+    });
+
+    // زر "لا" / إلغاء في المودال
+    document.getElementById('modalCancelBtn')?.addEventListener('click', hideCancelModal);
+
+    // زر "نعم، إلغاء" في المودال
+    document.getElementById('modalConfirmBtn')?.addEventListener('click', async () => {
+        hideCancelModal();
+
+        messageDiv.className = 'alert info';
+        messageDiv.textContent = txtCancelling;
+        messageDiv.classList.remove('hidden');
+
+        cancelButton.disabled = true;
+        cancelButton.textContent = txtCancelling;
+
+        // تعطيل رابط إعادة الجدولة مؤقتاً
+        if (rescheduleLink) {
+            rescheduleLink.style.pointerEvents = 'none';
+            rescheduleLink.style.opacity = '0.6';
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('booking_id', cancelButton.dataset.bookingId);
+            formData.append('token', cancelButton.dataset.token);
+
+            const lang = document.documentElement.lang || 'ar';
+
+            const response = await fetch(`/api/cancel?lang=${lang}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageDiv.className = 'alert success';
+                messageDiv.textContent = txtCancelSuccess;
+
+                cancelButton.textContent = txtCancelledButton;
+                cancelButton.disabled = true;
+
+                if (rescheduleLink) {
+                    rescheduleLink.style.pointerEvents = 'none';
+                    rescheduleLink.style.opacity = '0.5';
+                    rescheduleLink.textContent = txtNotAvailable;
+                    rescheduleLink.removeAttribute('href');
+                }
+
+                // إضافة تنبيه مرئي في قسم الموعد
+                const currentSection = document.querySelector('.current-appointment');
+                if (currentSection && !currentSection.querySelector('.cancelled-notice-extra')) {
+                    currentSection.insertAdjacentHTML('beforeend', `
+                        <p class="cancelled-notice cancelled-notice-extra">
+                            ${txtCancelSuccess}
+                        </p>
+                    `);
+                }
+            } else {
+                throw new Error(result.error || txtCancelError);
+            }
+        } catch (err) {
+            messageDiv.className = 'alert error';
+            messageDiv.textContent = err.message || txtCancelError;
+
+            cancelButton.disabled = false;
+            cancelButton.textContent = txtOriginalCancelBtn;
+
+            if (rescheduleLink) {
+                rescheduleLink.style.pointerEvents = 'auto';
+                rescheduleLink.style.opacity = '1';
+            }
+        }
+    });
+
+    // فتح المودال عند الضغط على زر الإلغاء
+    if (cancelButton) {
+        cancelButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!cancelButton.disabled) {
+                showCancelModal();
+            }
+        });
+    }
+    
+</script>
+
+  <style>
+    .manage-container {
+      max-width: 500px;
+      margin: 4rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .current-appointment {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #f8fafc;
+      border-radius: 0.8rem;
+    }
+
+    .cancelled-notice,
+    .cancelled-notice-extra {
+      color: #991b1b;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 1.2rem;
+      font-size: 1.1rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .btn {
+      padding: 1rem;
+      border-radius: 0.6rem;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .reschedule {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .cancel {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 0.6rem;
+      margin: 1.2rem 0;
+      text-align: center;
+      font-weight: 500;
+      font-size: 1.05rem;
+    }
+
+    .alert.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .alert.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .alert.info {
+      background: #e0f2fe;
+      color: #075985;
+      border: 1px solid #7dd3fc;
+    }
+
+    .alert.hidden {
+      display: none;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2.5rem 2rem;
+      border-radius: 1.2rem;
+      box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      animation: modalPop 0.3s ease;
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.85) translateY(30px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-content h3 {
+      font-size: 1.45rem;
+      margin: 0 0 1rem 0;
+      color: #991b1b;
+      font-weight: 700;
+    }
+
+    .modal-content p {
+      color: #374151;
+      line-height: 1.65;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 1.05rem 1.5rem;
+      border-radius: 0.7rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .modal-btn.secondary {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .modal-btn.secondary:hover {
+      background: #cbd5e1;
+    }
+
+    .modal-btn.danger {
+      background: linear-gradient(90deg, #ef4444, #f87171);
+      color: white;
+    }
+
+    .modal-btn.danger:hover {
+      background: linear-gradient(90deg, #dc2626, #ef4444);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+    }
+
+    @media (max-width: 640px) {
+      .manage-container {
+        margin: 2rem 1rem;
+        padding: 1.6rem;
+      }
+      
+      .modal-content {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+</BaseLayout>
