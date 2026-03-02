@@ -1,0 +1,26 @@
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --text: #0f172a;
+  --bg: #ffffff;
+  --radius: 0.75rem;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --transition: all 0.25s ease;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+}
+
+html[lang='ar'] {
+  direction: rtl;
+  text-align: right;
+}
+
