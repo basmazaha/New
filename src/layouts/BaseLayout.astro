@@ -1,0 +1,93 @@
+---
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+
+const { title = 'الموقع', description = '' } = Astro.props;
+
+// قائمة اللغات المدعومة — يجب تطابقها مع astro.config.mjs
+const supportedLocales = ['ar', 'en'] as const;
+
+// المسار الحالي بدون prefix اللغة (مثال: /about أو /services)
+const pathname = Astro.url.pathname;
+
+// إنشاء روابط absolute لكل لغة
+const getLocaleUrl = (locale: string) => {
+  if (locale === 'ar') {
+    // اللغة الافتراضية بدون prefix
+    return new URL(pathname, Astro.site).toString();
+  }
+  // اللغات الأخرى مع prefix
+  return new URL(`/${locale}${pathname}`, Astro.site).toString();
+};
+
+const alternates = supportedLocales.map((locale) => ({
+  locale,
+  url: getLocaleUrl(locale),
+}));
+---
+
+<html 
+  lang={Astro.currentLocale || 'ar'} 
+  dir={Astro.currentLocale === 'ar' ? 'rtl' : 'ltr'}
+  class="layout"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <!-- روابط اللغات البديلة (مهم جدًا لـ SEO متعدد اللغات) -->
+    {alternates.map(({ locale, url }) => (
+      <link rel="alternate" hreflang={locale} href={url} />
+    ))}
+
+    <!-- x-default: عادةً اللغة الافتراضية (ar في حالتك) -->
+    <link rel="alternate" hreflang="x-default" href={getLocaleUrl('ar')} />
+
+    <!-- canonical (اختياري لكن موصى به) -->
+    <link rel="canonical" href={getLocaleUrl(Astro.currentLocale || 'ar')} />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="/css/globals.css" />
+
+    <!-- تفعيل View Transitions / Client-side routing -->
+  
+  </head>
+
+  <body class="layout__body">
+    <Navbar class="layout__navbar" />
+
+    <main class="layout__main">
+      <slot />
+    </main>
+
+    <Footer class="layout__footer" />
+  </body>
+</html>
+
+<style is:global>
+  .layout__body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .layout__main {
+    flex-grow: 1;
+  }
+
+  /* 
+    يمكنك لاحقًا إضافة modifiers مثل:
+    .layout__main--padded { padding: 2rem; }
+    .layout__navbar--sticky { position: sticky; top: 0; z-index: 1000; }
+  */
+</style>
