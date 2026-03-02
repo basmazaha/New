@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import ServicesSection from '../../content/ServicesSection.astro';
+import Newsletter from '../../content/Newsletter.astro'
+import { useTranslations } from '../../i18n/utils';
+
+const t = useTranslations(Astro.currentLocale);
+---
+
+<BaseLayout title={t('hero.title')} description={t('hero.subtitle')}>
+  <section class="hero">
+    <div class="hero__content">
+      <h1 class="hero__title">{t('hero.title')}</h1>
+      <p class="hero__subtitle">{t('hero.subtitle')}</p>
+
+      <div class="hero__actions">
+        <a href="/en/booking" class="hero__button-link">
+          <Button label="buttons.submit" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <ServicesSection />
+  <Newsletter />
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 5rem 1rem;
+    text-align: center;
+  }
+
+  .hero__content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero__title {
+    font-size: 3.5rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.1;
+  }
+
+  .hero__subtitle {
+    font-size: 1.4rem;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+  }
+
+  .hero__actions {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .hero__button-link {
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .hero__title {
+      font-size: 2.6rem;
+    }
+    .hero__subtitle {
+      font-size: 1.25rem;
+    }
+  }
+</style>
