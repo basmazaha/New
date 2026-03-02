@@ -1,0 +1,136 @@
+---
+import { useTranslations } from '../i18n/utils.ts';
+
+const t = useTranslations(Astro.currentLocale);
+
+const sectionTitle = t('services.title');
+const services = t('services.cards');
+---
+
+<section class="services">
+  <div class="services__container">
+    <h2 class="services__title">{sectionTitle}</h2>
+
+    <div class="services__cards">
+      {
+        services.map(service => (
+          <div 
+            class="services__card"
+            style={{ "--card-color": service.color ?? "#4f46e5" }}
+          >
+            <div class="services__icon-wrapper">
+              <span class="services__icon">{service.icon}</span>
+            </div>
+            <h3 class="services__card-title">{service.title}</h3>
+            <p class="services__card-desc">{service.description}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .services {
+    padding: 5rem 1rem;
+    background: #0f172a;
+    color: white;
+  }
+
+  .services__container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .services__title {
+    text-align: center;
+    font-size: 2.8rem;
+    margin-bottom: 4rem;
+    background: linear-gradient(90deg, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .services__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+
+  .services__card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .services__card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      var(--card-color) 0%,
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .services__card:hover::before {
+    opacity: 0.12;
+  }
+
+  .services__card:hover {
+    transform: translateY(-12px);
+    border-color: var(--card-color);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  }
+
+  .services__icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 2px solid var(--card-color);
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.8rem;
+    font-size: 2.4rem;
+    transition: all 0.4s ease;
+  }
+
+  .services__card:hover .services__icon-wrapper {
+    background: var(--card-color);
+    transform: rotate(8deg) scale(1.1);
+    box-shadow: 0 0 30px rgba(var(--card-color-rgb), 0.4);
+  }
+
+  .services__card-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: white;
+  }
+
+  .services__card-desc {
+    color: #cbd5e1;
+    line-height: 1.7;
+    font-size: 1.05rem;
+  }
+
+  @media (max-width: 640px) {
+    .services__title {
+      font-size: 2.2rem;
+    }
+
+    .services__card {
+      padding: 2rem 1.5rem;
+    }
+  }
+</style>

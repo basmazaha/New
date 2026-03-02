@@ -1,0 +1,105 @@
+---
+import { useTranslations } from '../i18n/utils.ts';
+
+const t = useTranslations(Astro.currentLocale);
+
+const sectionTitle = t('newsletter.title');
+const description = t('newsletter.description');
+---
+
+<section class="newsletter">
+  <div class="newsletter__container">
+    <h2 class="newsletter__title">{sectionTitle}</h2>
+    <p class="newsletter__description">{description}</p>
+
+    <!-- =============================================
+         هنا ضع كود الـ iframe الذي نسخته من Brevo
+         ============================================= -->
+    <div class="newsletter__embed-wrapper">
+      <!-- مثال – استبدله بالكود الحقيقي الخاص بك -->
+      <iframe width="540" height="305" src="https://1187b3e9.sibforms.com/serve/MUIFAOyzmIWq5FeH3OdQIthHEi5b1nV97XyFWB4peA7kag18_VadONpDEIkkW14hNELwlS40SCsQ5aKBq0xrF8Da0RSClHjka9D0XrCKHdULfF92a70Q6vOd_b-ZIotK87wHWOpkOXHEuuUWHoyXCkpsWW17K-aSs-4mr6zlyJD3qbmv_OUlSJdSrXkugHK0NB771R5rWdQjXh7Fvg==" frameborder="0" scrolling="auto" allowfullscreen style="display: block;margin-left: auto;margin-right: auto;max-width: 100%;">
+      </iframe>
+    </div>
+
+    <noscript class="newsletter__noscript">
+      <p class="newsletter__noscript-text">
+        يرجى تفعيل JavaScript لعرض نموذج الاشتراك.
+      </p>
+    </noscript>
+  </div>
+</section>
+
+<style>
+  .newsletter {
+    padding: 5rem 1rem;
+    text-align: center;
+  }
+
+  .newsletter__container {
+    max-width: 48rem;           /* ≈ 768px */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .newsletter__container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  .newsletter__title {
+    font-size: 1.875rem;        /* 30px */
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    color: var(--text-heading, #111827);
+  }
+
+  @media (min-width: 768px) {
+    .newsletter__title {
+      font-size: 2.25rem;       /* 36px */
+    }
+  }
+
+  .newsletter__description {
+    font-size: 1.125rem;        /* 18px */
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: var(--text-muted, #4b5563);
+    opacity: 0.9;
+  }
+
+  .newsletter__embed-wrapper {
+    max-width: 100%;
+    margin: 0 auto 1.5rem;
+  }
+
+  .newsletter__embed-wrapper iframe {
+    width: 100%;
+    max-width: 540px;
+    height: 305px;              /* يمكنك تغييره حسب ارتفاع الفورم الخاص بك */
+    border: none;
+  }
+
+  .newsletter__noscript {
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+
+  /* Dark mode */
+  :global(.dark) .newsletter__title {
+    color: var(--text-heading-dark, #f3f4f6);
+  }
+
+  :global(.dark) .newsletter__description {
+    color: var(--text-muted-dark, #9ca3af);
+  }
+
+  :global(.dark) .newsletter__noscript-text {
+    color: #9ca3af;
+  }
+</style>
