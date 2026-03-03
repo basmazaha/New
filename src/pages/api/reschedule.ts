@@ -17,11 +17,11 @@ export const POST: APIRoute = async ({ request }) => {
     console.log('[RESCHEDULE API] Reading form data...');
     const formData = await request.formData();
 
-    const booking_id     = formData.get('booking_id') as string;
-    const token          = formData.get('token') as string;
+    const booking_id       = formData.get('booking_id') as string;
+    const token            = formData.get('token') as string;
     const appointment_date = formData.get('appointment_date') as string;
     const appointment_time = formData.get('appointment_time') as string;
-    const reason         = formData.get('reason') as string | null;
+    const reason           = formData.get('reason') as string | null;
 
     console.log('[RESCHEDULE API] Parsed form data:', {
       booking_id: booking_id || '(missing)',
@@ -44,23 +44,23 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // 4. التحقق من وجود مفاتيح البيئة
+    // 4. التحقق من وجود مفاتيح البيئة (anon key فقط الآن)
     console.log('[RESCHEDULE API] Environment variables check:');
     console.log('  → PUBLIC_SUPABASE_URL exists:', !!import.meta.env.PUBLIC_SUPABASE_URL);
     console.log('  → PUBLIC_SUPABASE_URL length:', import.meta.env.PUBLIC_SUPABASE_URL?.length || 0);
-    console.log('  → SUPABASE_SERVICE_ROLE_KEY exists:', !!import.meta.env.SUPABASE_SERVICE_ROLE_KEY);
-    console.log('  → SUPABASE_SERVICE_ROLE_KEY length:', import.meta.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0);
+    console.log('  → PUBLIC_SUPABASE_ANON_KEY exists:', !!import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+    console.log('  → PUBLIC_SUPABASE_ANON_KEY length:', import.meta.env.PUBLIC_SUPABASE_ANON_KEY?.length || 0);
 
-    if (!import.meta.env.PUBLIC_SUPABASE_URL || !import.meta.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('[RESCHEDULE API] Missing Supabase environment variables');
-      throw new Error('Missing Supabase URL or Service Role Key');
+    if (!import.meta.env.PUBLIC_SUPABASE_URL || !import.meta.env.PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('[RESCHEDULE API] Missing Supabase public environment variables');
+      throw new Error('Missing Supabase URL or Anon Key');
     }
 
-    // 5. إنشاء عميل Supabase
-    console.log('[RESCHEDULE API] Creating Supabase client...');
+    // 5. إنشاء عميل Supabase باستخدام anon key فقط
+    console.log('[RESCHEDULE API] Creating Supabase client with anon key...');
     const supabase = createClient(
       import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+      import.meta.env.PUBLIC_SUPABASE_ANON_KEY
     );
 
     // 6. التحقق من التوكن والحالة
@@ -140,7 +140,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // 8. تنفيذ التحديث
+    // 8. تنفيذ التحديث (سيتم التحقق من التوكن داخل RLS)
     console.log('[RESCHEDULE API] Performing update...');
     const { error: updateError } = await supabase
       .from('appointments')
@@ -151,7 +151,7 @@ export const POST: APIRoute = async ({ request }) => {
         status: 'rescheduled',
       })
       .eq('id', booking_id)
-      .eq('manage_token', token);
+      .eq('manage_token', token);  // ← الشرط ده مهم جدًا لأمان RLS
 
     if (updateError) {
       console.error('[RESCHEDULE API] Update failed:', {
@@ -187,7 +187,7 @@ export const POST: APIRoute = async ({ request }) => {
     console.error('[RESCHEDULE API] Caught exception:', {
       name: err.name,
       message: err.message,
-      stack: err.stack?.split('\n').slice(0, 5).join('\n'), // أول 5 سطور فقط لتجنب الطول الزائد
+      stack: err.stack?.split('\n').slice(0, 5).join('\n'),
     });
 
     const lang = new URL(request.url).searchParams.get('lang') || 'ar';
