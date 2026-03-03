@@ -323,37 +323,83 @@ if (offDays.has(dateStr)) continue;
       const booked = await getBookedTimesForDate(selectedDate);
       let hasAvailable = false;
 
-      for (let h = 12; h <= 22; h++) {
-        for (let m = 0; m < 60; m += 15) {
-          const time24 = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
-          if (booked.has(time24)) continue;
 
+const now = new Date();
+const selectedDateObj = new Date(selectedDate);
 
-// ────────────── فلترة الأوقات الماضية في اليوم الحالي فقط ──────────────
-    const now = new Date();
-    const selectedDateObj = new Date(selectedDate);
-    
-    // هل التاريخ المختار هو اليوم الحالي؟
-    const isToday = 
-      selectedDateObj.getFullYear() === now.getFullYear() &&
-      selectedDateObj.getMonth() === now.getMonth() &&
-      selectedDateObj.getDate() === now.getDate();
+const isToday = 
+  selectedDateObj.getFullYear() === now.getFullYear() &&
+  selectedDateObj.getMonth() === now.getMonth() &&
+  selectedDateObj.getDate() === now.getDate();
 
-    if (isToday) {
-      const [hour, minute] = time24.split(':').map(Number);
-      const timeDate = new Date(
+let minStartTime = null;
+
+if (isToday) {
+  // نضيف ساعة كاملة (60 دقيقة)
+  const earliestAllowed = new Date(now.getTime() + 60 * 60 * 1000);
+  
+  // ننتقل إلى أقرب ربع ساعة تالٍ
+  const minutes = earliestAllowed.getMinutes();
+  const remainder = minutes % 15;
+  let addMinutes = 0;
+  
+  if (remainder !== 0) {
+    addMinutes = 15 - remainder;
+  }
+  
+  minStartTime = new Date(earliestAllowed);
+  minStartTime.setMinutes(earliestAllowed.getMinutes() + addMinutes);
+  minStartTime.setSeconds(0);
+  minStartTime.setMilliseconds(0);
+}
+
+// ──── الآن نبدأ التوليد ──────
+let hasAvailable = false;
+
+for (let h = 12; h <= 22; h++) {
+  for (let m = 0; m < 60; m += 15) {
+    const time24 = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+
+    // تخطي المحجوز
+    if (booked.has(time24)) continue;
+
+    // التحقق من الحد الأدنى لليوم الحالي فقط
+    if (isToday && minStartTime) {
+      const slotDate = new Date(
         now.getFullYear(),
         now.getMonth(),
         now.getDate(),
-        hour,
-        minute
+        h,
+        m,
+        0,
+        0
       );
-      
-      // لو الوقت ده مضى بالفعل → تخطيه
-      if (timeDate <= now) {
+
+      if (slotDate < minStartTime) {
         continue;
       }
     }
+
+    hasAvailable = true;
+
+    let display = isArabic
+      ? (h === 12 ? `12:${m.toString().padStart(2,'0')} ظهرًا`
+         : h > 12 ? `${(h-12).toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} مساءً`
+         : `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} صباحًا`)
+      : `${(h % 12 || 12)}:${m.toString().padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`;
+
+    const item = document.createElement('div');
+    item.className = 'scroll-item';
+    item.dataset.value = time24;
+    item.textContent = display;
+    timeScroll.appendChild(item);
+  }
+}
+
+if (!hasAvailable) {
+  timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
+}
+
     // ────────────────────────────────────────────────────────────────────────
 
           
