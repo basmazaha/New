@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { useTranslations } from '../i18n/utils.ts';
-
+import BookingScript from '../scripts/booking-picker.ts';
 const t = useTranslations(Astro.currentLocale ?? 'ar');
 
 const pageTitle           = t('booking.title');
@@ -92,7 +92,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   </section>
 
 
-<script type="module" src={import.meta.resolve('../scripts/booking-picker.ts')}></script>
+<script type="module"></script>
 
   <style>
     .booking-form {
