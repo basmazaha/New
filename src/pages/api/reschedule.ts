@@ -103,6 +103,7 @@ export const POST: APIRoute = async ({ request }) => {
         appointment_time: formattedTime,
         reason: reason || null,
         status: 'rescheduled',
+        reminder_sent_6h: false,
         manage_token: token,           // ← إضافة التوكن هنا (مهم للأمان)
       })
       .eq('id', booking_id)
