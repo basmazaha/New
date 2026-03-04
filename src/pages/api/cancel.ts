@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
         status: 'cancelled',
         appointment_date: null,
         appointment_time: null,
-        reminder_sent_6h: true,
+        reminder_sent_6h: null,
         manage_token: null,           // إبطال الرابط نهائيًا (مهم لمنع إعادة الاستخدام)
         // cancelled_at: new Date().toISOString(),   // اختياري: تسجيل وقت الإلغاء
       })
