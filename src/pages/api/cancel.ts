@@ -7,13 +7,11 @@ export const POST: APIRoute = async ({ request }) => {
     const lang = url.searchParams.get('lang') || 'ar';
     const isArabic = lang.startsWith('ar');
 
-    // قراءة البيانات من الطلب (form data)
     const formData = await request.formData();
 
     const booking_id = formData.get('booking_id') as string;
     const token      = formData.get('token')     as string;
 
-    // التحقق من وجود الحقول المطلوبة
     if (!booking_id || !token) {
       return new Response(
         JSON.stringify({
@@ -21,132 +19,89 @@ export const POST: APIRoute = async ({ request }) => {
             ? 'معرف الحجز والرابط (التوكن) مطلوبان'
             : 'Booking ID and token are required'
         }),
-        { 
-          status: 400, 
-          headers: { 'Content-Type': 'application/json' } 
-        }
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // إنشاء عميل Supabase باستخدام anon key (ليعمل Row Level Security)
-    if (!import.meta.env.PUBLIC_SUPABASE_URL || !import.meta.env.PUBLIC_SUPABASE_ANON_KEY) {
-      console.error('[CANCEL API] Missing Supabase environment variables');
-      throw new Error('Missing Supabase configuration');
-    }
-
+    // استخدام anon key → RLS سيتحكم في الصلاحيات
     const supabase = createClient(
       import.meta.env.PUBLIC_SUPABASE_URL,
       import.meta.env.PUBLIC_SUPABASE_ANON_KEY
     );
 
-    // الخطوة 1: التحقق من صحة التوكن + وجود الحجز + أنه مؤكد
+    // التحقق من صحة الرابط (التوكن) + وجود الحجز
     const { data: booking, error: checkError } = await supabase
       .from('appointments')
-      .select('id, status')
+      .select('id')
       .eq('id', booking_id)
       .eq('manage_token', token)
       .single();
 
     if (checkError || !booking) {
-      console.warn('[CANCEL API] Invalid token or booking not found', { booking_id, error: checkError?.message });
       return new Response(
         JSON.stringify({
           error: isArabic
             ? 'رابط الإلغاء غير صالح أو منتهي الصلاحية'
             : 'Invalid or expired cancellation link'
         }),
-        { 
-          status: 403, 
-          headers: { 'Content-Type': 'application/json' } 
-        }
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    if (booking.status !== 'confirmed') {
-      return new Response(
-        JSON.stringify({
-          error: isArabic
-            ? 'لا يمكن إلغاء هذا الموعد (تم تعديله أو إلغاؤه مسبقًا)'
-            : 'This appointment cannot be cancelled (already modified or cancelled)'
-        }),
-        { 
-          status: 400, 
-          headers: { 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    // ────────────────────────────────────────────────
+    // تم حذف التحقق من الحالة confirmed هنا
+    // الآن يسمح بالإلغاء في أي حالة طالما التوكن صحيح
+    // ────────────────────────────────────────────────
 
-    // الخطوة 2: إلغاء الموعد (تغيير الحالة + مسح التاريخ والوقت) بدون لمس manage_token بعد
-    const { error: updateStep1Error, count: affectedRows } = await supabase
+    // تنفيذ الإلغاء - الخطوة الأولى: تغيير الحالة + مسح التاريخ والوقت
+    const { error: updateStep1Error } = await supabase
       .from('appointments')
       .update({
         status: 'cancelled',
         appointment_date: null,
         appointment_time: null,
-        // يمكنك إضافة حقول إضافية إذا أردت، مثل:
-        // cancelled_at: new Date().toISOString(),
-        // cancel_reason: formData.get('reason') as string || null,
+        // cancelled_at: new Date().toISOString(),   // اختياري: تسجيل وقت الإلغاء
       })
       .eq('id', booking_id)
-      .eq('manage_token', token)
-      .select('id', { count: 'exact', head: true });  // للتأكد من عدد الصفوف المتأثرة
+      .eq('manage_token', token);
 
-    if (updateStep1Error || affectedRows === 0) {
-      console.error('[CANCEL API] Step 1 failed', {
-        error: updateStep1Error?.message,
-        affectedRows,
-        booking_id
-      });
-
+    if (updateStep1Error) {
+      console.error('Cancel step 1 failed:', updateStep1Error.message);
       return new Response(
         JSON.stringify({
           error: isArabic
             ? 'تعذر إلغاء الموعد، حاول مرة أخرى لاحقًا'
             : 'Failed to cancel appointment, please try again'
         }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // الخطوة 3: إبطال التوكن (إلغاء الرابط نهائيًا) بعد نجاح الإلغاء
+    // الخطوة الثانية: إبطال التوكن نهائيًا
     const { error: updateStep2Error } = await supabase
       .from('appointments')
       .update({
-        manage_token: null
+        manage_token: null,
       })
       .eq('id', booking_id)
-      .eq('status', 'cancelled');  // شرط آمن بديل عن manage_token
+      .eq('status', 'cancelled');   // شرط آمن بعد الإلغاء
 
     if (updateStep2Error) {
-      // لا نرجع خطأ هنا للمستخدم لأن الإلغاء تم بالفعل
-      // لكن نسجل المشكلة للتصحيح لاحقًا
-      console.warn('[CANCEL API] Step 2 failed (token not nulled)', {
-        error: updateStep2Error.message,
-        booking_id
-      });
+      console.warn('Failed to nullify manage_token, but cancel succeeded:', updateStep2Error.message);
+      // لا نرجع خطأ للمستخدم هنا لأن الإلغاء تم بالفعل
     }
 
-    // النجاح
     return new Response(
       JSON.stringify({
         message: isArabic
           ? 'تم إلغاء الموعد بنجاح'
           : 'Appointment cancelled successfully'
       }),
-      { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json' } 
-      }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (err: any) {
-    console.error('[CANCEL API] Unexpected error:', {
-      message: err?.message,
-      stack: err?.stack?.split('\n').slice(0, 3)
-    });
+    console.error('Cancel API error:', err?.message || err);
 
     const isArabic = new URL(request.url).searchParams.get('lang')?.startsWith('ar') ?? true;
 
@@ -156,10 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
           ? 'خطأ في النظام، يرجى المحاولة لاحقًا'
           : 'System error, please try again later'
       }),
-      { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 };
