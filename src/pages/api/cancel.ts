@@ -48,25 +48,21 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // ────────────────────────────────────────────────
-    // تم حذف التحقق من الحالة confirmed هنا
-    // الآن يسمح بالإلغاء في أي حالة طالما التوكن صحيح
-    // ────────────────────────────────────────────────
-
-    // تنفيذ الإلغاء - الخطوة الأولى: تغيير الحالة + مسح التاريخ والوقت
-    const { error: updateStep1Error } = await supabase
+    // تنفيذ الإلغاء
+    const { error: updateError } = await supabase
       .from('appointments')
       .update({
         status: 'cancelled',
         appointment_date: null,
         appointment_time: null,
+        manage_token: null,           // إبطال الرابط نهائيًا (مهم لمنع إعادة الاستخدام)
         // cancelled_at: new Date().toISOString(),   // اختياري: تسجيل وقت الإلغاء
       })
       .eq('id', booking_id)
-      .eq('manage_token', token);
+      .eq('manage_token', token);     // طبقة أمان إضافية (تتوافق مع RLS)
 
-    if (updateStep1Error) {
-      console.error('Cancel step 1 failed:', updateStep1Error.message);
+    if (updateError) {
+      console.error('Cancel update failed:', updateError.message);
       return new Response(
         JSON.stringify({
           error: isArabic
@@ -75,20 +71,6 @@ export const POST: APIRoute = async ({ request }) => {
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
-    }
-
-    // الخطوة الثانية: إبطال التوكن نهائيًا
-    const { error: updateStep2Error } = await supabase
-      .from('appointments')
-      .update({
-        manage_token: null,
-      })
-      .eq('id', booking_id)
-      .eq('status', 'cancelled');   // شرط آمن بعد الإلغاء
-
-    if (updateStep2Error) {
-      console.warn('Failed to nullify manage_token, but cancel succeeded:', updateStep2Error.message);
-      // لا نرجع خطأ للمستخدم هنا لأن الإلغاء تم بالفعل
     }
 
     return new Response(
@@ -114,4 +96,4 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
-};
+}; 
