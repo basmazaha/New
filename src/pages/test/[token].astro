@@ -1,0 +1,206 @@
+---
+import { createClient } from '@supabase/supabase-js';
+
+const { locals, params, request } = Astro;
+
+// استخراج التوكن من dynamic route parameter
+const manage_token = params.token?.trim();
+
+if (!manage_token) {
+  return Astro.redirect('/404'); // أو صفحة خطأ مخصصة
+}
+
+const env = locals.runtime.env;
+const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error("Supabase env vars missing in Cloudflare runtime");
+}
+
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false
+  }
+});
+
+let record = null;
+let fetchMessage = null;
+let editMessage = null;
+let editSuccess = false;
+
+// جلب السجل المرتبط بالتوكن
+const { data: foundRecord, error: findError } = await supabase
+  .from('appointments')
+  .select('id, full_name, manage_token, created_at, status, appointment_date, appointment_time')  // أضفت appointment_date و appointment_time كمثال
+  .eq('manage_token', manage_token)
+  .single();
+
+if (findError || !foundRecord) {
+  fetchMessage = 'الرابط غير صالح أو انتهت صلاحيته';
+} else {
+  record = foundRecord;
+}
+
+// معالجة طلب التعديل (POST)
+if (request.method === 'POST' && record) {
+  try {
+    const formData = await request.formData();
+    const action = formData.get('action');
+
+    if (action === 'update') {
+      const updates: Record<string, any> = {};
+
+      // جمع الحقول التي يريد المستخدم تعديلها
+      const new_full_name = formData.get('full_name')?.toString().trim();
+      if (new_full_name && new_full_name !== record.full_name) {
+        updates.full_name = new_full_name;
+      }
+
+      // أضف هنا أي حقول أخرى تريد السماح بتعديلها
+      // مثال:
+      // const new_date = formData.get('appointment_date')?.toString().trim();
+      // if (new_date) updates.appointment_date = new_date;
+
+      if (Object.keys(updates).length === 0) {
+        editMessage = 'لم يتم تغيير أي بيانات';
+      } else {
+        const { error: updateError } = await supabase
+          .from('appointments')
+          .update(updates)
+          .eq('manage_token', manage_token);
+
+        if (updateError) {
+          console.error("Update error:", updateError);
+          editMessage = 'فشل في حفظ التعديلات: ' + updateError.message;
+        } else {
+          editSuccess = true;
+          editMessage = 'تم حفظ التعديلات بنجاح';
+
+          // إعادة جلب السجل بعد التحديث
+          const { data: refreshed } = await supabase
+            .from('appointments')
+            .select('id, full_name, manage_token, created_at, status, appointment_date, appointment_time')
+            .eq('manage_token', manage_token)
+            .single();
+
+          record = refreshed;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Edit processing error:", err);
+    editMessage = 'خطأ أثناء معالجة التعديل';
+  }
+}
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>إدارة حجزك</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1rem;
+        line-height: 1.6;
+      }
+      h1, h2 { color: #1a3c5e; }
+      .error { color: #c62828; background: #ffebee; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+      .success { color: #2e7d32; background: #e8f5e9; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 0.8rem;
+        text-align: right;
+      }
+      th { background: #f5f7fa; }
+      form {
+        display: grid;
+        gap: 1.2rem;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: #f9f9f9;
+        border-radius: 8px;
+      }
+      label { font-weight: 500; }
+      input, button {
+        padding: 0.7rem 1rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+      button {
+        background: #1976d2;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      button:hover { background: #1565c0; }
+      .info { color: #555; margin-bottom: 1.5rem; }
+    </style>
+  </head>
+
+  <body>
+
+    <h1>إدارة حجزك</h1>
+
+    {fetchMessage ? (
+      <div class="error">{fetchMessage}</div>
+    ) : record ? (
+      <>
+        <p class="info">هذه صفحة الحجز الخاص بك فقط. لا يمكنك رؤية أو تعديل حجوزات أخرى.</p>
+
+        <h2>تفاصيل الحجز</h2>
+        <table>
+          <tr><th>المعرف</th><td>{record.id}</td></tr>
+          <tr><th>الاسم الكامل</th><td>{record.full_name || '—'}</td></tr>
+          <!-- أضف الحقول الأخرى هنا -->
+          <tr><th>التاريخ</th><td>{record.appointment_date || '—'}</td></tr>
+          <tr><th>الوقت</th><td>{record.appointment_time || '—'}</td></tr>
+          <tr><th>الحالة</th><td>{record.status || '—'}</td></tr>
+          <tr><th>تاريخ الإنشاء</th><td>{new Date(record.created_at).toLocaleString('ar-EG')}</td></tr>
+        </table>
+
+        <h2>تعديل الحجز</h2>
+        <form method="POST">
+          <input type="hidden" name="action" value="update" />
+
+          <label>الاسم الكامل</label>
+          <input 
+            type="text" 
+            name="full_name" 
+            value={record.full_name || ''} 
+            required 
+          />
+
+          <!-- أضف هنا حقول تعديل أخرى إذا أردت -->
+          <!-- 
+          <label>تاريخ الموعد</label>
+          <input type="date" name="appointment_date" value={record.appointment_date || ''} />
+          -->
+
+          <button type="submit">حفظ التعديلات</button>
+        </form>
+
+        {editMessage && (
+          <div class={editSuccess ? 'success' : 'error'}>
+            {editMessage}
+          </div>
+        )}
+      </>
+    ) : null}
+
+  </body>
+</html>
