@@ -1,0 +1,110 @@
+---
+import { createClient } from '@supabase/supabase-js';
+
+const { locals } = Astro;
+const env = locals.runtime.env;
+
+const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error("Supabase env vars missing in Cloudflare runtime");
+}
+
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false
+  }
+});
+
+// جلب السجلات من جدول appointments
+const { data: records, error: fetchError } = await supabase
+  .from('appointments')
+  .select('id, full_name, created_at')   // حدد الحقول المطلوبة فقط
+  .order('created_at', { ascending: false })
+  .limit(20);
+
+if (fetchError) {
+  console.error("Fetch error:", fetchError);
+}
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>صفحة اختبار Supabase - Appointments</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 1rem; line-height: 1.6; }
+      h1, h2 { color: #1a3c5e; }
+      table { width: 100%; border-collapse: collapse; margin: 2rem 0; }
+      th, td { border: 1px solid #ddd; padding: 0.8rem; text-align: right; }
+      th { background: #f5f7fa; font-weight: 600; }
+      .error { color: #c62828; font-weight: bold; }
+      .success { color: #2e7d32; font-weight: bold; }
+      form { display: flex; flex-direction: column; gap: 1rem; max-width: 420px; margin-bottom: 3rem; }
+      input { padding: 0.6rem 1rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+      button { padding: 0.8rem 1.5rem; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+      button:hover { background: #1565c0; }
+      .link { margin-top: 2rem; display: block; color: #1976d2; }
+    </style>
+  </head>
+  <body>
+
+    <h1>صفحة اختبار Supabase (جدول Appointments)</h1>
+
+    <h2>إضافة سجل جديد (اختبار)</h2>
+    <form method="POST" action="/api/test-appointments">
+      <input 
+        type="text" 
+        name="full_name" 
+        placeholder="الاسم الكامل (مثال: محمد أحمد)" 
+        required 
+      />
+      <button type="submit">إضافة سجل</button>
+    </form>
+
+    {
+      Astro.request.method === 'POST' && Astro.locals.formResult && (
+        <p class={Astro.locals.formResult.success ? 'success' : 'error'}>
+          {Astro.locals.formResult.message}
+        </p>
+      )
+    }
+
+    <h2>المواعيد المسجلة ({records?.length || 0})</h2>
+
+    {fetchError ? (
+      <p class="error">حدث خطأ أثناء جلب البيانات: {fetchError.message}</p>
+    ) : records?.length ? (
+      <table>
+        <thead>
+          <tr>
+            <th>المعرف</th>
+            <th>الاسم الكامل</th>
+            <th>تاريخ الإنشاء</th>
+          </tr>
+        </thead>
+        <tbody>
+          {records.map(record => (
+            <tr>
+              <td>{record.id}</td>
+              <td>{record.full_name || '(غير محدد)'}</td>
+              <td>{new Date(record.created_at).toLocaleString('ar-EG')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p>لا توجد مواعيد مسجلة بعد.</p>
+    )}
+
+    <a href="/api/test-appointments" target="_blank" class="link">
+      → عرض البيانات مباشرة عبر API (GET)
+    </a>
+
+  </body>
+</html>
