@@ -1,34 +1,18 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import cloudflare from '@astrojs/cloudflare';
+import cloudflare from '@astrojs/cloudflare';  // ← غيري vercel لـ cloudflare هنا
 
 export default defineConfig({
-  site: 'https://example.com', // غيريه لاحقًا
+  site: 'https://example.com', // غيّريه لاحقًا للـ domain النهائي بتاعك على Cloudflare
 
-  output: 'server',
+  output: 'server',  // سيبيه زي ما هو (أو 'hybrid' لو عايزة بعض الصفحات static)
 
   adapter: cloudflare({
-    imageService: 'cloudflare',
+    // options اللي تناسب Cloudflare (مش زي Vercel)
+    // مثال: لو عايزة image optimization على Cloudflare
+    imageService: 'cloudflare',  // أو 'passthrough' أو 'compile' – جربي 'cloudflare' لو عندك صور
+    // platformProxy: { enabled: true } لو عايزة simulate Cloudflare runtime محليًا في dev (اختياري)
   }),
-
-  vite: {
-    ssr: {
-      // اجبري حزم jsonwebtoken وتبعياته
-      noExternal: [
-        'jsonwebtoken',
-        'jwa',
-        'jws',
-      ],
-      // دعم Node.js built-ins اللي بتظهر في الـ warnings
-      external: ['node:crypto', 'node:fs/promises', 'node:path', 'node:url'],
-    },
-    // تحسين الـ build لدعم Node 22+
-    optimizeDeps: {
-      esbuildOptions: {
-        target: 'es2022',
-      },
-    },
-  },
 
   integrations: [
     sitemap({
@@ -36,10 +20,10 @@ export default defineConfig({
         defaultLocale: 'ar',
         locales: {
           ar: 'ar',
-          en: 'en',
-        },
-      },
-    }),
+          en: 'en'
+        }
+      }
+    })
   ],
 
   i18n: {
@@ -47,9 +31,9 @@ export default defineConfig({
     locales: ['ar', 'en'],
     routing: {
       prefixDefaultLocale: false,
-      redirectToDefaultLocale: true,
-    },
+      redirectToDefaultLocale: true
+    }
   },
 
-  trailingSlash: 'ignore',
+  trailingSlash: 'ignore'
 });
