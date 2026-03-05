@@ -1,11 +1,11 @@
-name = "your-project-name"  # غيريه لاسم مشروعك على Cloudflare Pages
+name = "new"   # أو أي اسم مشروعك على Cloudflare Pages (مش لازم يتطابق مع GitHub)
 
-compatibility_date = "2025-03-01"  # أو أحدث تاريخ
+compatibility_date = "2025-03-01"   # أو أحدث تاريخ ممكن (مثل 2026-03-01 لو عايزة)
 
 compatibility_flags = [
   "nodejs_compat",
   "nodejs_compat_v2"
 ]
 
-[site]
-bucket = "./dist"
+# مهم جدًا: ده اللي بيخلي Cloudflare يقرأ الملف كـ Pages config
+pages_build_output_dir = "./dist"
