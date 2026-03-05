@@ -3,13 +3,31 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { useTranslations } from '../../../i18n/utils.ts';
 import { createClient } from '@supabase/supabase-js';
 
+const { locals } = Astro;
 const t = useTranslations(Astro.currentLocale);
 
 const { token } = Astro.params;
 
+const env = locals.runtime.env;
+const supabaseUrl = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
+const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error('Missing Supabase configuration in environment variables');
+  return Astro.redirect('/error?msg=server-config');
+}
+
+// استخدام service_role key
 const supabase = createClient(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  supabaseUrl,
+  serviceRoleKey,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    }
+  }
 );
 
 const { data: appointment, error } = await supabase
@@ -134,7 +152,7 @@ const formattedTime = appointment.appointment_time
 
     <div class="actions">
       <a
-        href={`/en/reschedule/${token}`}
+        href={`/reschedule/${token}`}
         class="btn reschedule"
         id="rescheduleLink"
       >
