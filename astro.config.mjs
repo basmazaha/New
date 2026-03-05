@@ -13,16 +13,16 @@ export default defineConfig({
 
   vite: {
     ssr: {
-      // الحل الرئيسي: اجبري حزم jsonwebtoken وتبعياتها
+      // اجبري حزم jsonwebtoken وتبعياته
       noExternal: [
         'jsonwebtoken',
         'jwa',
         'jws',
       ],
-      // إضافة مهمة جدًا لدعم crypto في Cloudflare
+      // دعم Node.js built-ins اللي بتظهر في الـ warnings
       external: ['node:crypto', 'node:fs/promises', 'node:path', 'node:url'],
     },
-    // إضافة لتحسين الـ build على Cloudflare
+    // تحسين الـ build لدعم Node 22+
     optimizeDeps: {
       esbuildOptions: {
         target: 'es2022',
