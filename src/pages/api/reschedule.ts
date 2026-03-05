@@ -1,15 +1,15 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 
-export const POST: APIRoute = async ({ request }) => {
-  console.log('[RESCHEDULE API] Request received');
+export const POST: APIRoute = async ({ request, locals }) => {
+  console.log('Reschedule API route reached!', request.method);
 
   try {
+    // قراءة اللغة من الـ query string (مثال: /api/reschedule?lang=en)
     const url = new URL(request.url);
     const lang = url.searchParams.get('lang') || 'ar';
     const isArabic = lang.startsWith('ar');
 
-    // قراءة البيانات من النموذج
     const formData = await request.formData();
 
     const booking_id       = formData.get('booking_id')     as string;
@@ -20,125 +20,142 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!booking_id || !token || !appointment_date || !appointment_time) {
       return new Response(
-        JSON.stringify({
-          error: isArabic
+        JSON.stringify({ 
+          error: isArabic 
             ? 'بيانات ناقصة (معرف الحجز، التوكن، التاريخ، الوقت مطلوبة)'
-            : 'Missing required fields'
+            : 'Missing required data (booking ID, token, date, time)'
         }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    // التحقق من المتغيرات البيئية
-    if (!import.meta.env.PUBLIC_SUPABASE_URL || !import.meta.env.PUBLIC_SUPABASE_ANON_KEY) {
-      console.error('Missing Supabase environment variables');
-      throw new Error('Missing Supabase configuration');
+    // الوصول إلى متغيرات البيئة من runtime في Cloudflare Pages
+    const env = locals.runtime.env;
+
+    const supabaseUrl = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
+    const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('Missing Supabase configuration in environment variables');
+      return new Response(
+        JSON.stringify({ error: isArabic ? 'خطأ في إعدادات الخادم' : 'Server configuration error' }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // استخدام anon key → مهم لتفعيل Row Level Security
+    // إنشاء عميل Supabase باستخدام service_role key
     const supabase = createClient(
-      import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false
+        }
+      }
     );
 
-    // التحقق من صحة التوكن + حالة الحجز
-    const { data: booking, error: checkError } = await supabase
+    // التحقق من صحة التوكن + أن الموعد لسه confirmed
+    const { data: currentBooking, error: checkError } = await supabase
       .from('appointments')
       .select('id, status')
       .eq('id', booking_id)
       .eq('manage_token', token)
       .single();
 
-    if (checkError || !booking) {
+    if (checkError || !currentBooking) {
       return new Response(
-        JSON.stringify({
-          error: isArabic
-            ? 'الرابط غير صالح أو منتهي الصلاحية'
+        JSON.stringify({ 
+          error: isArabic 
+            ? 'الرابط غير صالح أو انتهت صلاحيته'
             : 'Invalid or expired link'
         }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 403, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    if (booking.status !== 'confirmed') {
+    if (currentBooking.status !== 'confirmed') {
       return new Response(
-        JSON.stringify({
-          error: isArabic
+        JSON.stringify({ 
+          error: isArabic 
             ? 'هذا الموعد تم تعديله أو إلغاؤه مسبقًا'
-            : 'Appointment already modified or cancelled'
+            : 'This appointment has already been modified or cancelled'
         }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    // التحقق من عدم وجود تعارض في الموعد الجديد
-    const formattedTime = appointment_time + ':00';
-
-    const { data: conflict } = await supabase
-      .from('appointments')
-      .select('id')
-      .eq('appointment_date', appointment_date)
-      .eq('appointment_time', formattedTime)
-      .neq('id', booking_id)
-      .maybeSingle();
-
-    if (conflict) {
-      return new Response(
-        JSON.stringify({
-          error: isArabic
-            ? 'هذا الموعد محجوز بالفعل'
-            : 'This time slot is already booked'
-        }),
-        { status: 409, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // تنفيذ التعديل
-    // ملاحظة: إضافة manage_token في الـ update مهمة للأمان مع RLS
-    // (تمنع محاولات تغيير التوكن أو استغلال السياسات)
+    // تحديث الموعد
     const { error: updateError } = await supabase
       .from('appointments')
       .update({
         appointment_date,
-        appointment_time: formattedTime,
+        appointment_time,
         reason: reason || null,
         status: 'rescheduled',
-        reminder_sent_6h: false,
-        manage_token: token,           // ← إضافة التوكن هنا (مهم للأمان)
+        // manage_token: null,          // اختياري: إبطال التوكن بعد التعديل
+        // updated_at: new Date().toISOString(),
       })
       .eq('id', booking_id)
-      .eq('manage_token', token);      // ← الفلتر الرئيسي للأمان
+      .eq('manage_token', token);
 
     if (updateError) {
-      console.error('Update failed:', updateError);
+      console.error('Update error:', updateError);
       return new Response(
-        JSON.stringify({
-          error: isArabic
+        JSON.stringify({ 
+          error: isArabic 
             ? 'فشل في تعديل الموعد، حاول مرة أخرى'
-            : 'Failed to update appointment'
+            : 'Failed to reschedule the appointment, please try again'
         }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
       );
     }
 
     return new Response(
-      JSON.stringify({
-        message: isArabic
+      JSON.stringify({ 
+        message: isArabic 
           ? 'تم تعديل الموعد بنجاح'
-          : 'Appointment rescheduled successfully'
+          : 'The appointment has been successfully rescheduled'
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+      }
     );
 
-  } catch (err: any) {
-    console.error('[RESCHEDULE API] Error:', err);
-    const isArabic = new URL(request.url).searchParams.get('lang')?.startsWith('ar') ?? true;
+  } catch (err) {
+    console.error('Reschedule API error:', err);
+
+    const url = new URL(request.url);
+    const lang = url.searchParams.get('lang') || 'ar';
+    const isArabic = lang.startsWith('ar');
 
     return new Response(
-      JSON.stringify({
-        error: isArabic ? 'خطأ داخلي في الخادم' : 'Internal server error'
+      JSON.stringify({ 
+        error: isArabic 
+          ? 'خطأ داخلي في الخادم'
+          : 'Internal server error'
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      }
     );
   }
 };
