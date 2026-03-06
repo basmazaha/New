@@ -170,7 +170,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   });
 
   // ──────────────────────────────────────────────
-  //     جلب المواعيد المحجوزة
+  //     جلب المواعيد المحجوزة لتاريخ معين
   // ──────────────────────────────────────────────
   async function getBookedTimesForDate(dateStr) {
     try {
@@ -194,68 +194,70 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   }
 
   // ──────────────────────────────────────────────
-  //               التواريخ dropdown
+  //               التواريخ dropdown – فقط الأيام المتاحة
   // ──────────────────────────────────────────────
-  const today = new Date();
   const dateTrigger = document.getElementById('date-trigger');
   const dateDropdown = document.getElementById('date-dropdown');
   const dateScroll = document.getElementById('date-scroll');
   const dateHidden = document.getElementById('appointment_date');
 
   async function generateDates() {
-    dateScroll.innerHTML = '';
-    let added = 0;
-    let offset = 0;
+    dateScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
 
-    while (added < 15) {
-      const d = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate() + offset
-      );
-      offset++;
+    try {
+      const response = await fetch(EDGE_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ 
+          query_type: "available_dates_next_days",
+          days: 15  // غيرت إلى 15 يوم كما طلبت
+        }),
+      });
 
-      if (d.getDay() === 5) continue; // تجاهل يوم الجمعة
-
-      const now = new Date();
-      const lastPossibleTime = new Date(
-        d.getFullYear(),
-        d.getMonth(),
-        d.getDate(),
-        22, 15
-      );
-
-      if (d.toDateString() === now.toDateString() && now > lastPossibleTime) {
-        continue;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
 
-      const year  = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day   = String(d.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
+      const json = await response.json();
+      const availableDates = json.available_dates || [];
 
-      if (offDays.has(dateStr)) continue;
+      dateScroll.innerHTML = '';
 
-      const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
-      const monthName = d.toLocaleDateString(locale, { month: 'long' });
-      const dayNum    = d.getDate().toString().padStart(2, '0');
+      if (availableDates.length === 0) {
+        dateScroll.innerHTML = `<div class="scroll-item disabled">لا توجد مواعيد متاحة في الفترة القادمة</div>`;
+        return;
+      }
 
-      const display = isArabic
-        ? `${dayName} ${dayNum} ${monthName} ${year}`
-        : `${dayName}, ${monthName} ${dayNum}, ${year}`;
+      for (const dateStr of availableDates) {
+        const d = new Date(dateStr);
+        const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
+        const monthName = d.toLocaleDateString(locale, { month: 'long' });
+        const dayNum    = d.getDate().toString().padStart(2, '0');
+        const year      = d.getFullYear();
 
-      const item = document.createElement('div');
-      item.className = 'scroll-item';
-      item.dataset.value = dateStr;
-      item.textContent = display;
-      dateScroll.appendChild(item);
-      added++;
+        const display = isArabic
+          ? `${dayName} ${dayNum} ${monthName} ${year}`
+          : `${dayName}, ${monthName} ${dayNum}, ${year}`;
+
+        const item = document.createElement('div');
+        item.className = 'scroll-item';
+        item.dataset.value = dateStr;
+        item.textContent = display;
+        dateScroll.appendChild(item);
+      }
+
+    } catch (err) {
+      console.error("Error loading available dates:", err);
+      dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
     }
   }
 
   dateScroll.addEventListener('click', (e) => {
     const item = e.target.closest('.scroll-item');
-    if (!item) return;
+    if (!item || item.classList.contains('disabled')) return;
     dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
     item.classList.add('selected');
   });
@@ -282,17 +284,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     }
   });
 
-  document.addEventListener('click', (e) => {
-    if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
-      dateDropdown.classList.add('hidden');
-    }
-    if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
-      timeDropdown.classList.add('hidden');
-    }
-  });
-
   // ──────────────────────────────────────────────
-  //               الأوقات dropdown
+  //               الأوقات dropdown – ديناميكي من working_hours
   // ──────────────────────────────────────────────
   const timeTrigger = document.getElementById('time-trigger');
   const timeDropdown = document.getElementById('time-dropdown');
@@ -300,7 +293,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   const timeHidden = document.getElementById('appointment_time');
 
   async function generateTimes() {
-    timeScroll.innerHTML = '';
+    timeScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
 
     const selectedDate = dateHidden.value;
     if (!selectedDate) {
@@ -308,75 +301,90 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       return;
     }
 
+    // 1. جلب ساعات العمل الديناميكية من working_hours عبر Edge Function
+    let config;
+    try {
+      const response = await fetch(EDGE_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ 
+          query_type: "working_hours_for_date",
+          date: selectedDate
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      config = await response.json();
+    } catch (err) {
+      console.error("Error loading working hours:", err);
+      timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب ساعات العمل</div>`;
+      return;
+    }
+
+    if (!config || !config.start_time || !config.end_time) {
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
+      return;
+    }
+
+    // 2. جلب الحجوزات المحجوزة
     const booked = await getBookedTimesForDate(selectedDate);
 
-    let hasAvailable = false;
+    // 3. حساب الدقائق من start_time و end_time
+    const [startH, startM] = config.start_time.split(':').map(Number);
+    const [endH, endM] = config.end_time.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const slotDuration = config.slot_duration_minutes || 15;
 
+    // 4. التحقق من اليوم الحالي (أقرب موعد بعد ساعة)
     const now = new Date();
     const selectedDateObj = new Date(selectedDate);
-
     const isToday = 
       selectedDateObj.getFullYear() === now.getFullYear() &&
       selectedDateObj.getMonth() === now.getMonth() &&
       selectedDateObj.getDate() === now.getDate();
 
-    let minStartTime = null;
-
+    let minStartMinutes = startMinutes;
     if (isToday) {
-      // إضافة ساعة كاملة (60 دقيقة)
-      const earliestAllowed = new Date(now.getTime() + 60 * 60 * 1000);
-      
-      // التقريب لأعلى إلى أقرب ربع ساعة تالية
-      const minutes = earliestAllowed.getMinutes();
-      const remainder = minutes % 15;
-      let addMinutes = 0;
-      
+      const earliestAllowed = new Date(now.getTime() + 60 * 60 * 1000);  // بعد ساعة
+      let minutes = earliestAllowed.getHours() * 60 + earliestAllowed.getMinutes();
+      const remainder = minutes % slotDuration;
       if (remainder !== 0) {
-        addMinutes = 15 - remainder;
+        minutes += slotDuration - remainder;  // تقريب لأعلى إلى أقرب فتحة
       }
-      
-      minStartTime = new Date(earliestAllowed);
-      minStartTime.setMinutes(earliestAllowed.getMinutes() + addMinutes);
-      minStartTime.setSeconds(0);
-      minStartTime.setMilliseconds(0);
+      minStartMinutes = Math.max(minutes, startMinutes);
     }
 
-    for (let h = 12; h <= 22; h++) {
-      for (let m = 0; m < 60; m += 15) {
-        const time24 = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+    // 5. توليد الفتحات المتاحة ديناميكيًا
+    let hasAvailable = false;
+    timeScroll.innerHTML = '';
 
-        // تخطي المواعيد المحجوزة
-        if (booked.has(time24)) continue;
+    for (let m = minStartMinutes; m < endMinutes; m += slotDuration) {
+      const hour = Math.floor(m / 60);
+      const minute = m % 60;
+      const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 
-        // في اليوم الحالي فقط: استبعاد الأوقات قبل الحد الأدنى المسموح
-        if (isToday && minStartTime) {
-          const slotDate = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            h,
-            m,
-            0,
-            0
-          );
+      if (booked.has(time24)) continue;
 
-          if (slotDate < minStartTime) continue;
-        }
+      hasAvailable = true;
 
-        hasAvailable = true;
+      let display = isArabic
+        ? (hour === 12 ? `12:${minute.toString().padStart(2, '0')} ظهرًا`
+           : hour > 12 ? `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`
+           : `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`)
+        : `${(hour % 12 || 12)}:${minute.toString().padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
 
-        let display = isArabic
-          ? (h === 12 ? `12:${m.toString().padStart(2,'0')} ظهرًا`
-             : h > 12 ? `${(h-12).toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} مساءً`
-             : `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} صباحًا`)
-          : `${(h % 12 || 12)}:${m.toString().padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`;
-
-        const item = document.createElement('div');
-        item.className = 'scroll-item';
-        item.dataset.value = time24;
-        item.textContent = display;
-        timeScroll.appendChild(item);
-      }
+      const item = document.createElement('div');
+      item.className = 'scroll-item';
+      item.dataset.value = time24;
+      item.textContent = display;
+      timeScroll.appendChild(item);
     }
 
     if (!hasAvailable) {
@@ -413,7 +421,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     }
   });
 
-  // اختيار وإغلاق الـ dropdown عند الضغط على عنصر
+  // اختيار العنصر وإغلاق الـ dropdown
   [dateScroll, timeScroll].forEach(scroll => {
     scroll.addEventListener('click', (e) => {
       const item = e.target.closest('.scroll-item');
@@ -427,6 +435,16 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       hidden.value = item.dataset.value;
       dropdown.classList.add('hidden');
     });
+  });
+
+  // إغلاق الـ dropdowns عند الضغط خارجها
+  document.addEventListener('click', (e) => {
+    if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
+      dateDropdown.classList.add('hidden');
+    }
+    if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
+      timeDropdown.classList.add('hidden');
+    }
   });
 
 </script>
