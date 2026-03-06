@@ -103,8 +103,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       .from('appointments')
       .update({
         appointment_date,
-        appointment_time,
-        reason: reason || null,
+        appointment_time, 
         status: 'rescheduled',
         // manage_token: null,          // اختياري: إبطال التوكن بعد التعديل
         // updated_at: new Date().toISOString(),
