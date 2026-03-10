@@ -313,7 +313,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   if (!willOpen) {
     dateDropdown.classList.add('hidden');
 
-    if (!selectedDate && dateOriginalText) {
+    if (dateOriginalText) {
       dateTrigger.textContent = dateOriginalText;
     }
 
@@ -324,7 +324,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
     await generateDates();
 
-    if (!selectedDate) {
+    if (dateOriginalText) {
       dateTrigger.textContent = dateOriginalText;
     }
 
@@ -434,7 +434,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   if (!willOpen) {
     timeDropdown.classList.add('hidden');
 
-    if (!selectedTime && timeOriginalText) {
+    if (timeOriginalText) {
       timeTrigger.textContent = timeOriginalText;
     }
 
@@ -445,7 +445,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
     await generateTimes();
 
-    if (!selectedTime) {
+    if (timeOriginalText) {
       timeTrigger.textContent = timeOriginalText;
     }
 
@@ -469,10 +469,11 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   // إغلاق القوائم عند النقر خارجها
   // =============================================================
   document.addEventListener('click', (e) => {
+
   if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
     dateDropdown.classList.add('hidden');
 
-    if (!selectedDate && dateOriginalText) {
+    if (dateOriginalText) {
       dateTrigger.textContent = dateOriginalText;
     }
   }
@@ -480,10 +481,11 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
     timeDropdown.classList.add('hidden');
 
-    if (!selectedTime && timeOriginalText) {
+    if (timeOriginalText) {
       timeTrigger.textContent = timeOriginalText;
     }
   }
+
 });
 
 </script>
