@@ -475,16 +475,32 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
     dateDropdown.classList.add('hidden');
 
-    if (dateOriginalText) {
-      dateTrigger.textContent = dateOriginalText;
+    // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
+    if (dateTrigger.textContent === t.loadingAppointments) {
+      if (selectedDate) {
+        const selectedItem = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+        if (selectedItem) {
+          dateTrigger.textContent = selectedItem.textContent;
+        }
+      } else {
+        dateTrigger.textContent = t.dateTriggerDefault;
+      }
     }
   }
 
   if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
     timeDropdown.classList.add('hidden');
 
-    if (timeOriginalText) {
-      timeTrigger.textContent = timeOriginalText;
+    // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
+    if (timeTrigger.textContent === t.loadingAppointments) {
+      if (selectedTime) {
+        const selectedItem = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+        if (selectedItem) {
+          timeTrigger.textContent = selectedItem.textContent;
+        }
+      } else {
+        timeTrigger.textContent = t.timeTriggerDefault;
+      }
     }
   }
 
