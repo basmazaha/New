@@ -163,6 +163,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     timeTriggerDefault:   isArabic ? 'اختر الوقت ←'        : 'Choose time ←',
     selectDateFirst:      isArabic ? 'اختر التاريخ أولاً'  : 'Select date first',
     noTimesAvailable:     isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
+    noAppointmentsDays:   isArabic ? 'لا توجد مواعيد متاحة في الفترة القادمة' : 'No appointments available in the upcoming days',
+    fetchError:           isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
     sending:              isArabic ? 'جاري الإرسال...'     : 'Submitting...',
     missingDateTime:      isArabic ? 'يرجى اختيار التاريخ والوقت' : 'Please select date and time',
     loadingAppointments:  isArabic ? 'جاري تحميل المواعيد...' : 'Loading appointments...'
@@ -268,7 +270,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       dateScroll.innerHTML = '';
 
       if (available_dates.length === 0) {
-        dateScroll.innerHTML = `<div class="scroll-item disabled">لا توجد مواعيد متاحة في الفترة القادمة</div>`;
+        dateScroll.innerHTML = `<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
         return;
       }
 
@@ -301,7 +303,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       }
     } catch (err) {
       console.error('خطأ تحميل التواريخ:', err);
-      dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
+      dateScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;;
     }
   }
 
@@ -422,7 +424,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       }
     } catch (err) {
       console.error('خطأ تحميل الأوقات:', err);
-      timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب المواعيد</div>`;
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;
     }
   }
 
