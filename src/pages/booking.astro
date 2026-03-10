@@ -150,262 +150,293 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     </div>
   </section>
 
-  <script>
-    const EDGE_FUNCTION_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
-    const form = document.getElementById('bookingForm');
-    const messageDiv = document.getElementById('message');
-    const successMsg = messageDiv.dataset.successMsg;
-    const errorMsgBase = messageDiv.dataset.errorMsg;
+<script>
+  const EDGE_FUNCTION_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
-    const locale = document.documentElement.lang || 'ar';
-    const isArabic = locale.startsWith('ar');
+  const form = document.getElementById('bookingForm');
+  const messageDiv = document.getElementById('message');
+  const successMsg = messageDiv.dataset.successMsg;
+  const errorMsgBase = messageDiv.dataset.errorMsg;
 
-    const dateTriggerDefault = isArabic ? 'اختر التاريخ ←' : 'Choose date ←';
-    const timeTriggerDefault = isArabic ? 'اختر الوقت ←' : 'Choose time ←';
-    const selectDateFirstMsg = isArabic ? 'اختر التاريخ أولاً' : 'Select date first';
-    const noTimesAvailableMsg = isArabic ? 'لا توجد مواعيد متاحة' : 'No times available';
+  const locale = document.documentElement.lang || 'ar';
+  const isArabic = locale.startsWith('ar');
 
-    // ──────────────────────────────────────────────
-    // إرسال النموذج
-    // ──────────────────────────────────────────────
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
-      messageDiv.textContent = isArabic ? 'جاري الإرسال...' : 'Submitting...';
+  const dateTriggerDefault = isArabic ? 'اختر التاريخ ←' : 'Choose date ←';
+  const timeTriggerDefault = isArabic ? 'اختر الوقت ←' : 'Choose time ←';
+  const selectDateFirstMsg = isArabic ? 'اختر التاريخ أولاً' : 'Select date first';
+  const noTimesAvailableMsg = isArabic ? 'لا توجد مواعيد متاحة' : 'No times available';
 
-      const formData = new FormData(form);
+  // ──────────────────────────────────────────────
+  // إرسال النموذج
+  // ──────────────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
+    messageDiv.textContent = isArabic ? 'جاري الإرسال...' : 'Submitting...';
 
-      try {
-        const lang = document.documentElement.lang || 'ar';
-        const response = await fetch(`/api/submit-booking?lang=${lang}`, {
-          method: 'POST',
-          body: formData
-        });
+    const formData = new FormData(form);
 
-        const result = await response.json();
+    try {
+      const lang = document.documentElement.lang || 'ar';
+      const response = await fetch(`/api/submit-booking?lang=${lang}`, {
+        method: 'POST',
+        body: formData
+      });
 
-        if (response.ok) {
-          messageDiv.classList.add('success');
-          messageDiv.textContent = result.message || successMsg;
-          form.reset();
+      const result = await response.json();
 
-          document.getElementById('date-trigger').textContent = dateTriggerDefault;
-          document.getElementById('time-trigger').textContent = timeTriggerDefault;
-          document.getElementById('appointment_date').value = '';
-          document.getElementById('appointment_time').value = '';
+      if (response.ok) {
+        messageDiv.classList.add('success');
+        messageDiv.textContent = result.message || successMsg;
+        form.reset();
 
-          document.getElementById('date-dropdown')?.classList.add('hidden');
-          document.getElementById('time-dropdown')?.classList.add('hidden');
-        } else {
-          throw new Error(result.error || errorMsgBase);
-        }
-      } catch (err) {
-        messageDiv.classList.add('error');
-        messageDiv.textContent = err.message || errorMsgBase;
-      }
-    });
+        document.getElementById('date-trigger').textContent = dateTriggerDefault;
+        document.getElementById('time-trigger').textContent = timeTriggerDefault;
+        document.getElementById('appointment_date').value = '';
+        document.getElementById('appointment_time').value = '';
 
-    // ──────────────────────────────────────────────
-    // التواريخ
-    // ──────────────────────────────────────────────
-    const dateTrigger = document.getElementById('date-trigger');
-    const dateDropdown = document.getElementById('date-dropdown');
-    const dateScroll = document.getElementById('date-scroll');
-    const dateHidden = document.getElementById('appointment_date');
-
-    async function generateDates() {
-      dateScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
-
-      try {
-        const response = await fetch(EDGE_FUNCTION_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-          },
-          body: JSON.stringify({ 
-            query_type: "available_dates_next_days",
-            days: 15 
-          }),
-        });
-
-        const json = await response.json();
-        const availableDates = json.available_dates || [];
-
-        dateScroll.innerHTML = '';
-
-        if (availableDates.length === 0) {
-          dateScroll.innerHTML = `<div class="scroll-item disabled">لا توجد مواعيد متاحة في الفترة القادمة</div>`;
-          return;
-        }
-
-        for (const dateStr of availableDates) {
-          const d = new Date(dateStr);
-          const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
-          const monthName = d.toLocaleDateString(locale, { month: 'long' });
-          const dayNum    = d.getDate().toString().padStart(2, '0');
-          const year      = d.getFullYear();
-
-          const display = isArabic
-            ? `${dayName} ${dayNum} ${monthName} ${year}`
-            : `${dayName}, ${monthName} ${dayNum}, ${year}`;
-
-          const item = document.createElement('div');
-          item.className = 'scroll-item';
-          item.dataset.value = dateStr;
-          item.textContent = display;
-          dateScroll.appendChild(item);
-        }
-      } catch (err) {
-        console.error("Error loading dates:", err);
-        dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
-      }
-    }
-
-    dateTrigger.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const isOpen = !dateDropdown.classList.contains('hidden');
-
-      document.getElementById('time-dropdown')?.classList.add('hidden');
-
-      if (isOpen) {
-        dateDropdown.classList.add('hidden');
+        document.getElementById('date-dropdown')?.classList.add('hidden');
+        document.getElementById('time-dropdown')?.classList.add('hidden');
       } else {
-        await generateDates();
-        dateDropdown.classList.remove('hidden');
-
-        if (dateHidden.value) {
-          const sel = dateScroll.querySelector(`[data-value="${dateHidden.value}"]`);
-          if (sel) {
-            sel.classList.add('selected');
-            sel.scrollIntoView({ block: 'center', behavior: 'instant' });
-          }
-        }
+        throw new Error(result.error || errorMsgBase);
       }
-    });
+    } catch (err) {
+      messageDiv.classList.add('error');
+      messageDiv.textContent = err.message || errorMsgBase;
+      console.error('خطأ أثناء إرسال النموذج:', err);
+    }
+  });
 
-    dateScroll.addEventListener('click', (e) => {
-      const item = e.target.closest('.scroll-item');
-      if (!item || item.classList.contains('disabled')) return;
+  // ──────────────────────────────────────────────
+  // التواريخ
+  // ──────────────────────────────────────────────
+  const dateTrigger = document.getElementById('date-trigger');
+  const dateDropdown = document.getElementById('date-dropdown');
+  const dateScroll = document.getElementById('date-scroll');
+  const dateHidden = document.getElementById('appointment_date');
 
-      dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
-      item.classList.add('selected');
+  async function generateDates() {
+    dateScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
 
-      dateTrigger.textContent = item.textContent;
-      dateHidden.value = item.dataset.value;
-      dateDropdown.classList.add('hidden');
-    });
+    try {
+      const response = await fetch(EDGE_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ 
+          query_type: "available_dates_next_days",
+          days: 15 
+        }),
+      });
 
-    // ──────────────────────────────────────────────
-    // الأوقات
-    // ──────────────────────────────────────────────
-    const timeTrigger = document.getElementById('time-trigger');
-    const timeDropdown = document.getElementById('time-dropdown');
-    const timeScroll = document.getElementById('time-scroll');
-    const timeHidden = document.getElementById('appointment_time');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    async function generateTimes() {
-      timeScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+      const json = await response.json();
+      const availableDates = Array.isArray(json.available_dates) ? json.available_dates : [];
 
-      const selectedDate = dateHidden.value;
-      if (!selectedDate) {
-        timeScroll.innerHTML = `<div class="scroll-item disabled">${selectDateFirstMsg}</div>`;
+      dateScroll.innerHTML = '';
+
+      if (availableDates.length === 0) {
+        dateScroll.innerHTML = `<div class="scroll-item disabled">لا توجد مواعيد متاحة في الفترة القادمة</div>`;
         return;
       }
 
-      try {
-        const response = await fetch(EDGE_FUNCTION_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-          },
-          body: JSON.stringify({ 
-            query_type: "available_times_for_date",
-            date: selectedDate 
-          }),
-        });
-
-        const json = await response.json();
-        const availableTimes = json.available_times || [];
-
-        timeScroll.innerHTML = '';
-
-        if (availableTimes.length === 0) {
-          timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
-          return;
+      for (const dateStr of availableDates) {
+        if (typeof dateStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          console.warn('تاريخ غير صالح من الـ API:', dateStr);
+          continue;
         }
 
-        for (const time24 of availableTimes) {
-          const [hourStr, minuteStr] = time24.split(':');
-          const hour = parseInt(hourStr, 10);
-          const minute = parseInt(minuteStr, 10);
+        const d = new Date(dateStr);
+        const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
+        const monthName = d.toLocaleDateString(locale, { month: 'long' });
+        const dayNum    = d.getDate().toString().padStart(2, '0');
+        const year      = d.getFullYear();
 
-          let display = isArabic
-            ? (hour === 12 
-                ? `12:${minute.toString().padStart(2, '0')} ظهرًا`
-                : hour > 12 
-                  ? `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`
-                  : `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`)
-            : `${(hour % 12 || 12)}:${minute.toString().padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
+        const display = isArabic
+          ? `${dayName} ${dayNum} ${monthName} ${year}`
+          : `${dayName}, ${monthName} ${dayNum}, ${year}`;
 
-          const item = document.createElement('div');
-          item.className = 'scroll-item';
-          item.dataset.value = time24;
-          item.textContent = display;
-          timeScroll.appendChild(item);
+        const item = document.createElement('div');
+        item.className = 'scroll-item';
+        item.dataset.value = dateStr;
+        item.textContent = display;
+        dateScroll.appendChild(item);
+      }
+    } catch (err) {
+      console.error("خطأ أثناء تحميل التواريخ:", err);
+      dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
+    }
+  }
+
+  dateTrigger.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const isOpen = !dateDropdown.classList.contains('hidden');
+
+    document.getElementById('time-dropdown')?.classList.add('hidden');
+
+    if (isOpen) {
+      dateDropdown.classList.add('hidden');
+    } else {
+      await generateDates();
+      dateDropdown.classList.remove('hidden');
+
+      if (dateHidden.value) {
+        const sel = dateScroll.querySelector(`[data-value="${dateHidden.value}"]`);
+        if (sel) {
+          sel.classList.add('selected');
+          sel.scrollIntoView({ block: 'center', behavior: 'instant' });
         }
-      } catch (err) {
-        console.error("Error loading times:", err);
-        timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب المواعيد</div>`;
       }
     }
+  });
 
-    timeTrigger.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const isOpen = !timeDropdown.classList.contains('hidden');
+  dateScroll.addEventListener('click', (e) => {
+    const item = e.target.closest('.scroll-item');
+    if (!item || item.classList.contains('disabled')) return;
 
-      document.getElementById('date-dropdown')?.classList.add('hidden');
+    dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
+    item.classList.add('selected');
 
-      if (isOpen) {
-        timeDropdown.classList.add('hidden');
-      } else {
-        await generateTimes();
-        timeDropdown.classList.remove('hidden');
+    dateTrigger.textContent = item.textContent;
+    dateHidden.value = item.dataset.value;
+    dateDropdown.classList.add('hidden');
+  });
 
-        if (timeHidden.value) {
-          const sel = timeScroll.querySelector(`[data-value="${timeHidden.value}"]`);
-          if (sel) {
-            sel.classList.add('selected');
-            sel.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          }
+  // ──────────────────────────────────────────────
+  // الأوقات – مع حماية من NaN وقيم غير صالحة
+  // ──────────────────────────────────────────────
+  const timeTrigger = document.getElementById('time-trigger');
+  const timeDropdown = document.getElementById('time-dropdown');
+  const timeScroll = document.getElementById('time-scroll');
+  const timeHidden = document.getElementById('appointment_time');
+
+  async function generateTimes() {
+    timeScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+
+    const selectedDate = dateHidden.value;
+    if (!selectedDate) {
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${selectDateFirstMsg}</div>`;
+      return;
+    }
+
+    try {
+      const response = await fetch(EDGE_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ 
+          query_type: "available_times_for_date",
+          date: selectedDate 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const json = await response.json();
+      const availableTimes = Array.isArray(json.available_times) ? json.available_times : [];
+
+      console.log('الأوقات المتاحة المستلمة من الـ API:', availableTimes);
+
+      timeScroll.innerHTML = '';
+
+      if (availableTimes.length === 0) {
+        timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
+        return;
+      }
+
+      for (const time24 of availableTimes) {
+        if (typeof time24 !== 'string' || !time24.includes(':')) {
+          console.warn('قيمة وقت غير صالحة من الـ API:', time24);
+          continue;
+        }
+
+        const [hourStr, minuteStr] = time24.split(':');
+        const hour   = parseInt(hourStr,   10);
+        const minute = parseInt(minuteStr, 10);
+
+        if (isNaN(hour) || isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+          console.warn('فشل تحويل الوقت إلى أرقام صالحة:', time24);
+          continue;
+        }
+
+        let display = isArabic
+          ? (hour === 12 
+              ? `12:${minute.toString().padStart(2, '0')} ظهرًا`
+              : hour > 12 
+                ? `\( {(hour - 12).toString().padStart(2, '0')}: \){minute.toString().padStart(2, '0')} مساءً`
+                : `\( {hour.toString().padStart(2, '0')}: \){minute.toString().padStart(2, '0')} صباحًا`)
+          : `\( {(hour % 12 || 12)}: \){minute.toString().padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
+
+        const item = document.createElement('div');
+        item.className = 'scroll-item';
+        item.dataset.value = time24;
+        item.textContent = display;
+        timeScroll.appendChild(item);
+      }
+
+      if (timeScroll.children.length === 0) {
+        timeScroll.innerHTML = `<div class="scroll-item disabled">لا توجد أوقات صالحة متاحة</div>`;
+      }
+    } catch (err) {
+      console.error("خطأ أثناء تحميل الأوقات:", err);
+      timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب المواعيد</div>`;
+    }
+  }
+
+  timeTrigger.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const isOpen = !timeDropdown.classList.contains('hidden');
+
+    document.getElementById('date-dropdown')?.classList.add('hidden');
+
+    if (isOpen) {
+      timeDropdown.classList.add('hidden');
+    } else {
+      await generateTimes();
+      timeDropdown.classList.remove('hidden');
+
+      if (timeHidden.value) {
+        const sel = timeScroll.querySelector(`[data-value="${timeHidden.value}"]`);
+        if (sel) {
+          sel.classList.add('selected');
+          sel.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
       }
-    });
+    }
+  });
 
-    timeScroll.addEventListener('click', (e) => {
-      const item = e.target.closest('.scroll-item');
-      if (!item || item.classList.contains('disabled')) return;
+  timeScroll.addEventListener('click', (e) => {
+    const item = e.target.closest('.scroll-item');
+    if (!item || item.classList.contains('disabled')) return;
 
-      timeScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
-      item.classList.add('selected');
+    timeScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
+    item.classList.add('selected');
 
-      timeTrigger.textContent = item.textContent;
-      timeHidden.value = item.dataset.value;
+    timeTrigger.textContent = item.textContent;
+    timeHidden.value = item.dataset.value;
+    timeDropdown.classList.add('hidden');
+  });
+
+  // إغلاق القوائم عند الضغط خارجها
+  document.addEventListener('click', (e) => {
+    if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
+      dateDropdown.classList.add('hidden');
+    }
+    if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
       timeDropdown.classList.add('hidden');
-    });
-
-    // إغلاق القوائم عند الضغط خارجها
-    document.addEventListener('click', (e) => {
-      if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
-        dateDropdown.classList.add('hidden');
-      }
-      if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
-        timeDropdown.classList.add('hidden');
-      }
-    });
-  </script>
+    }
+  });
+</script>
 
 
   <style>
