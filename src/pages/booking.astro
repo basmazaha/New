@@ -304,17 +304,26 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   }
 
   dateTrigger.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    const willOpen = dateDropdown.classList.contains('hidden');
-    document.getElementById('time-dropdown')?.classList.add('hidden');
+  e.stopPropagation();
+  const willOpen = dateDropdown.classList.contains('hidden');
+  document.getElementById('time-dropdown')?.classList.add('hidden');
 
-    if (!willOpen) {
-      dateDropdown.classList.add('hidden');
-    } else {
-      await generateDates();
-      dateDropdown.classList.remove('hidden');
+  if (!willOpen) {
+    dateDropdown.classList.add('hidden');
+  } else {
+
+    const originalText = dateTrigger.textContent;
+    dateTrigger.textContent = t.loadingAppointments;
+
+    await generateDates();
+
+    if (!selectedDate) {
+      dateTrigger.textContent = originalText;
     }
-  });
+
+    dateDropdown.classList.remove('hidden');
+  }
+});
 
   dateScroll.addEventListener('click', (e) => {
     const item = e.target.closest('.scroll-item');
@@ -411,17 +420,26 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   }
 
   timeTrigger.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    const willOpen = timeDropdown.classList.contains('hidden');
-    document.getElementById('date-dropdown')?.classList.add('hidden');
+  e.stopPropagation();
+  const willOpen = timeDropdown.classList.contains('hidden');
+  document.getElementById('date-dropdown')?.classList.add('hidden');
 
-    if (!willOpen) {
-      timeDropdown.classList.add('hidden');
-    } else {
-      await generateTimes();
-      timeDropdown.classList.remove('hidden');
+  if (!willOpen) {
+    timeDropdown.classList.add('hidden');
+  } else {
+
+    const originalText = timeTrigger.textContent;
+    timeTrigger.textContent = t.loadingAppointments;
+
+    await generateTimes();
+
+    if (!selectedTime) {
+      timeTrigger.textContent = originalText;
     }
-  });
+
+    timeDropdown.classList.remove('hidden');
+  }
+});
 
   timeScroll.addEventListener('click', (e) => {
     const item = e.target.closest('.scroll-item');
