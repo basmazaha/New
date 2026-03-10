@@ -160,7 +160,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   const locale = document.documentElement.lang || 'ar';
   const isArabic = locale.startsWith('ar');
 
-  // نصوص افتراضية (يُفضل أن تأتي من ملف الترجمة، لكن هنا للتوافق مع النسخة الجديدة)
+  // نصوص افتراضية (يفضل أن تأتي من ملف الترجمة لاحقاً)
   const dateTriggerDefault = isArabic ? 'اختر التاريخ ←' : 'Choose date ←';
   const timeTriggerDefault = isArabic ? 'اختر الوقت ←' : 'Choose time ←';
   const selectDateFirstMsg = isArabic ? 'اختر التاريخ أولاً' : 'Select date first';
@@ -176,7 +176,6 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // التحقق من وجود تاريخ ووقت قبل الإرسال
     if (!selectedDate || !selectedTime) {
       messageDiv.classList.remove('booking-form__message--hidden', 'success');
       messageDiv.classList.add('error');
@@ -188,7 +187,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
     // دمج التاريخ والوقت بتنسيق ISO
     const datetimeValue = `${selectedDate}T${selectedTime}:00`;
-    document.getElementById('datetime').value = datetimeValue;
+    // إذا كان هناك حقل مخفي اسمه datetime → يجب إضافته في HTML أولاً
+    // document.getElementById('datetime').value = datetimeValue;
 
     messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
     messageDiv.textContent = isArabic ? 'جاري الإرسال...' : 'Submitting...';
@@ -209,12 +209,12 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         messageDiv.textContent = result.message || successMsg;
         form.reset();
 
-        // إعادة تعيين الاختيارات والعرض
+        // إعادة تعيين كل شيء
         document.getElementById('date-trigger').textContent = dateTriggerDefault;
         document.getElementById('time-trigger').textContent = timeTriggerDefault;
         selectedDate = '';
         selectedTime = '';
-        document.getElementById('datetime').value = '';
+        // document.getElementById('datetime').value = '';
 
         document.getElementById('date-dropdown')?.classList.add('hidden');
         document.getElementById('time-dropdown')?.classList.add('hidden');
@@ -280,6 +280,16 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         item.textContent = display;
         dateScroll.appendChild(item);
       });
+
+      // بعد التحميل → إعادة تحديد التاريخ المختار سابقاً إن وجد
+      if (selectedDate) {
+        const selectedItem = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+        if (selectedItem) {
+          dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
+          selectedItem.classList.add('selected');
+          selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }
     } catch (err) {
       console.error("خطأ أثناء تحميل التواريخ:", err);
       dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
@@ -288,12 +298,11 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   dateTrigger.addEventListener('click', async (e) => {
     e.stopPropagation();
-    const isOpen = !dateDropdown.classList.contains('hidden');
+    const willOpen = dateDropdown.classList.contains('hidden');
 
-    // إغلاق قائمة الوقت إذا كانت مفتوحة
     document.getElementById('time-dropdown')?.classList.add('hidden');
 
-    if (isOpen) {
+    if (!willOpen) {
       dateDropdown.classList.add('hidden');
     } else {
       await generateDates();
@@ -305,7 +314,6 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     const item = e.target.closest('.scroll-item');
     if (!item || item.classList.contains('disabled')) return;
 
-    // إلغاء التحديد السابق وتحديد الجديد
     dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
     item.classList.add('selected');
 
@@ -313,7 +321,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     selectedDate = item.dataset.value;
     dateDropdown.classList.add('hidden');
 
-    // مهم: إعادة تحميل الأوقات المتاحة بعد اختيار تاريخ جديد
+    // إعادة تحميل الأوقات بعد اختيار تاريخ جديد
     generateTimes();
   });
 
@@ -378,6 +386,16 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         item.textContent = display;
         timeScroll.appendChild(item);
       });
+
+      // إعادة تحديد الوقت المختار سابقاً إن وجد
+      if (selectedTime) {
+        const selectedItem = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+        if (selectedItem) {
+          timeScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
+          selectedItem.classList.add('selected');
+          selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }
     } catch (err) {
       console.error("خطأ أثناء تحميل الأوقات:", err);
       timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب المواعيد</div>`;
@@ -386,12 +404,11 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   timeTrigger.addEventListener('click', async (e) => {
     e.stopPropagation();
-    const isOpen = !timeDropdown.classList.contains('hidden');
+    const willOpen = timeDropdown.classList.contains('hidden');
 
-    // إغلاق قائمة التاريخ إذا كانت مفتوحة
     document.getElementById('date-dropdown')?.classList.add('hidden');
 
-    if (isOpen) {
+    if (!willOpen) {
       timeDropdown.classList.add('hidden');
     } else {
       await generateTimes();
@@ -412,7 +429,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   });
 
   // ──────────────────────────────────────────────
-  // إغلاق القوائم المنسدلة عند النقر خارجها
+  // إغلاق القوائم عند النقر خارجها
   // ──────────────────────────────────────────────
   document.addEventListener('click', (e) => {
     if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
