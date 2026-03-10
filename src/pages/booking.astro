@@ -170,6 +170,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   let selectedDate = '';
   let selectedTime = '';
+  let dateOriginalText = '';
+  let timeOriginalText = '';
 
   // =============================================================
   // دوال مساعدة للرسائل والإعادة التعيين
@@ -310,15 +312,20 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   if (!willOpen) {
     dateDropdown.classList.add('hidden');
+
+    if (!selectedDate && dateOriginalText) {
+      dateTrigger.textContent = dateOriginalText;
+    }
+
   } else {
 
-    const originalText = dateTrigger.textContent;
+    dateOriginalText = dateTrigger.textContent;
     dateTrigger.textContent = t.loadingAppointments;
 
     await generateDates();
 
     if (!selectedDate) {
-      dateTrigger.textContent = originalText;
+      dateTrigger.textContent = dateOriginalText;
     }
 
     dateDropdown.classList.remove('hidden');
@@ -426,15 +433,20 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   if (!willOpen) {
     timeDropdown.classList.add('hidden');
+
+    if (!selectedTime && timeOriginalText) {
+      timeTrigger.textContent = timeOriginalText;
+    }
+
   } else {
 
-    const originalText = timeTrigger.textContent;
+    timeOriginalText = timeTrigger.textContent;
     timeTrigger.textContent = t.loadingAppointments;
 
     await generateTimes();
 
     if (!selectedTime) {
-      timeTrigger.textContent = originalText;
+      timeTrigger.textContent = timeOriginalText;
     }
 
     timeDropdown.classList.remove('hidden');
@@ -457,13 +469,23 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   // إغلاق القوائم عند النقر خارجها
   // =============================================================
   document.addEventListener('click', (e) => {
-    if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
-      dateDropdown.classList.add('hidden');
+  if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
+    dateDropdown.classList.add('hidden');
+
+    if (!selectedDate && dateOriginalText) {
+      dateTrigger.textContent = dateOriginalText;
     }
-    if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
-      timeDropdown.classList.add('hidden');
+  }
+
+  if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
+    timeDropdown.classList.add('hidden');
+
+    if (!selectedTime && timeOriginalText) {
+      timeTrigger.textContent = timeOriginalText;
     }
-  });
+  }
+});
+
 </script>
 
         
