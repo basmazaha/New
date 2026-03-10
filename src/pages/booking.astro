@@ -144,16 +144,14 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
 <script>
   // =============================================================
-  // الثوابت والعناصر
+  // الثوابت والعناصر الأساسية
   // =============================================================
   const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
-
-  // إذا كنتِ لا تزالين تستخدمين function منفصلة للتحقق من التوافر
   const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
-  const form        = document.getElementById('bookingForm');
-  const messageDiv  = document.getElementById('message');
-  const successMsg  = messageDiv.dataset.successMsg;
+  const form = document.getElementById('bookingForm');
+  const messageDiv = document.getElementById('message');
+  const successMsg = messageDiv.dataset.successMsg;
   const errorMsgBase = messageDiv.dataset.errorMsg;
 
   const locale = document.documentElement.lang || 'ar';
@@ -173,7 +171,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   let selectedTime = '';
 
   // =============================================================
-  // عرض / إخفاء الرسائل
+  // دوال مساعدة للرسائل والإعادة التعيين
   // =============================================================
   function showMessage(text, type = 'info') {
     messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
@@ -197,7 +195,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   }
 
   // =============================================================
-  // إرسال النموذج ← إلى Edge Function create-appointment
+  // إرسال النموذج إلى Edge Function create-appointment
   // =============================================================
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -213,7 +211,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       email:     form.email?.value?.trim()     || '',
       phone:     form.phone?.value?.trim()     || '',
       reason:    form.reason?.value?.trim()    || '',
-      datetime:  `\( {selectedDate}T \){selectedTime}:00`
+      datetime:  `${selectedDate}T${selectedTime}:00`
     };
 
     showMessage(t.sending, 'info');
@@ -235,13 +233,13 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         throw new Error(result.error || errorMsgBase);
       }
     } catch (err) {
-      console.error('خطأ إرسال الحجز:', err);
+      console.error('خطأ أثناء إرسال الحجز:', err);
       showMessage(err.message || errorMsgBase, 'error');
     }
   });
 
   // =============================================================
-  // توليد التواريخ المتاحة
+  // توليد قائمة التواريخ المتاحة
   // =============================================================
   const dateTrigger  = document.getElementById('date-trigger');
   const dateDropdown = document.getElementById('date-dropdown');
@@ -289,7 +287,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         dateScroll.appendChild(item);
       });
 
-      // إعادة تمييز التاريخ المختار إن وجد
+      // إعادة تمييز التاريخ المختار إن وُجد
       if (selectedDate) {
         const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
         if (el) {
@@ -332,7 +330,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   });
 
   // =============================================================
-  // توليد الأوقات المتاحة
+  // توليد قائمة الأوقات المتاحة
   // =============================================================
   const timeTrigger  = document.getElementById('time-trigger');
   const timeDropdown = document.getElementById('time-dropdown');
@@ -379,14 +377,14 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
           if (hour === 12) {
             display = `12:${minute.toString().padStart(2, '0')} ظهرًا`;
           } else if (hour > 12) {
-            display = `\( {(hour - 12).toString().padStart(2, '0')}: \){minute.toString().padStart(2, '0')} مساءً`;
+            display = `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`;
           } else {
-            display = `\( {hour.toString().padStart(2, '0')}: \){minute.toString().padStart(2, '0')} صباحًا`;
+            display = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`;
           }
         } else {
           const h = (hour % 12) || 12;
           const period = hour < 12 ? 'AM' : 'PM';
-          display = `\( {h}: \){minute.toString().padStart(2, '0')} ${period}`;
+          display = `${h}:${minute.toString().padStart(2, '0')} ${period}`;
         }
 
         const item = document.createElement('div');
@@ -396,7 +394,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         timeScroll.appendChild(item);
       });
 
-      // إعادة تمييز الوقت المختار إن وجد
+      // إعادة تمييز الوقت المختار إن وُجد
       if (selectedTime) {
         const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
         if (el) {
