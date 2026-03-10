@@ -164,7 +164,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     selectDateFirst:      isArabic ? 'اختر التاريخ أولاً'  : 'Select date first',
     noTimesAvailable:     isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
     sending:              isArabic ? 'جاري الإرسال...'     : 'Submitting...',
-    missingDateTime:      isArabic ? 'يرجى اختيار التاريخ والوقت' : 'Please select date and time'
+    missingDateTime:      isArabic ? 'يرجى اختيار التاريخ والوقت' : 'Please select date and time',
+    loadingAppointments:  isArabic ? 'جاري تحميل المواعيد...' : 'Loading appointments...'
   };
 
   let selectedDate = '';
@@ -246,7 +247,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   const dateScroll   = document.getElementById('date-scroll');
 
   async function generateDates() {
-    dateScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+    dateScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
     try {
       const res = await fetch(AVAILABILITY_URL, {
@@ -337,7 +338,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   const timeScroll   = document.getElementById('time-scroll');
 
   async function generateTimes() {
-    timeScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+    timeScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
     if (!selectedDate) {
       timeScroll.innerHTML = `<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
