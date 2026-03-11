@@ -335,18 +335,35 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 });
 
   dateScroll.addEventListener('click', (e) => {
-    const item = e.target.closest('.scroll-item');
-    if (!item || item.classList.contains('disabled')) return;
 
-    dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
-    item.classList.add('selected');
+const item =
+e.target.closest('.scroll-item');
 
-    dateTrigger.textContent = item.textContent;
-    selectedDate = item.dataset.value;
-    dateDropdown.classList.add('hidden');
+if (!item ||
+item.classList.contains('disabled'))
+return;
 
-    generateTimes();
-  });
+dateScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+dateTrigger.textContent =
+item.textContent;
+
+selectedDate = item.dataset.value;
+
+dateDropdown.classList.add('hidden');
+
+/* reset الوقت عند تغيير التاريخ */
+selectedTime = '';
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
+
+generateTimes();
+
+});
 
   // =============================================================
   // توليد قائمة الأوقات المتاحة
