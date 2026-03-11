@@ -456,6 +456,15 @@ dateScroll.appendChild(item);
 
 });
 
+/* النزول تلقائياً إلى الوقت المختار */
+const selectedItem = dateScroll.querySelector('.scroll-item.selected');
+
+if (selectedItem) {
+  selectedItem.scrollIntoView({
+    block: 'center'
+  });
+}
+
 }
 catch {
 
@@ -641,6 +650,15 @@ if (time24 === selectedTime) {
 timeScroll.appendChild(item);
 
 });
+
+/* النزول تلقائياً إلى الوقت المختار */
+const selectedItem = timeScroll.querySelector('.scroll-item.selected');
+
+if (selectedItem) {
+  selectedItem.scrollIntoView({
+    block: 'center'
+  });
+}
 
 }
 catch {
