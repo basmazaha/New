@@ -879,7 +879,6 @@ timeDropdown.classList.add('hidden');
       -webkit-overflow-scrolling: touch;
 }
     
-
 :global(.scroll-item) {
   padding: 1rem 3rem 1rem 1rem;
   text-align: right;
@@ -896,12 +895,18 @@ timeDropdown.classList.add('hidden');
   color: #2563eb;
 }
 
-:global(.scroll-item.selected),
-:global(.scroll-item.selected:hover) {
+:global(.scroll-item.selected) {
   background: #1d4ed8;
   color: white;
   font-weight: 600;
 }
+
+:global(.scroll-item.selected)::before {
+  content: "✔";
+  position: absolute;
+  right: 1rem;
+}
+
 
     @media (max-width: 640px) {
       .date-time-row { flex-direction: column; gap: 1.4rem; }
