@@ -36,6 +36,13 @@ const { data: appointment, error } = await supabase
   .eq('manage_token', token)
   .maybeSingle();
 
+const { data: settings } = await supabase
+  .from("business_settings")
+  .select("timezone")
+  .maybeSingle();
+
+const businessTimezone = settings?.timezone || "Africa/Cairo";
+
 if (error || !appointment) {
   return Astro.redirect('/404');
 }
@@ -90,6 +97,7 @@ const formattedDate = appointment.date_time
       year: 'numeric',
       month: 'long',
       day: 'numeric'
+      timeZone: businessTimezone
     })
   : '—';
 
@@ -97,7 +105,8 @@ const formattedTime = appointment.date_time
   ? new Date(appointment.date_time).toLocaleTimeString(Astro.currentLocale, {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: businessTimezone
     })
   : '—';
 ---
