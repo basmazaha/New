@@ -33,12 +33,12 @@ html, body, .layout__body {
   // =============================================================
 
     .booking-form {
-     flex: 1;
      display: flex;
-     align-items: flex-start;       /* أو center إذا أردت منتصف رأسي */
+     align-items: center;
      justify-content: center;
-     padding: 2rem 1rem 3rem;
+     padding: 3rem 1rem 5rem;
      width: 100%;
+     min-height: 70vh;
    }
 
     .booking-form__container {
@@ -214,6 +214,7 @@ html, body, .layout__body {
       .half { min-width: 100%; }
       .booking-form__container { padding: 2rem 1.4rem; }
     }
+
 
 
 
