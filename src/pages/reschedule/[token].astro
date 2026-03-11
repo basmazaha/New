@@ -524,6 +524,11 @@ selectedDate = item.dataset.value;
 
 dateDropdown.classList.add('hidden');
 
+/* reset الوقت عند تغيير التاريخ */
+selectedTime = '';
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
+
 generateTimes();
 
 });
