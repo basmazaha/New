@@ -860,13 +860,7 @@ timeDropdown.classList.add('hidden');
 /* ===== Custom Picker (Dropdown) === */
 /* ================================= */
 
-.booking-picker {
-  position:relative;
-}
-
-/* trigger */
-
-.booking-picker .custom-picker-trigger {
+.custom-picker-trigger {
   padding:.85rem 1rem;
   border:1px solid #d1d5db;
   border-radius:.6rem;
@@ -881,20 +875,20 @@ timeDropdown.classList.add('hidden');
   user-select:none;
 }
 
-.booking-picker .custom-picker-trigger::after {
+.custom-picker-trigger::after {
   content:"▼";
   font-size:.85rem;
   color:#6b7280;
 }
 
-.booking-picker .custom-picker-trigger:focus {
+.custom-picker-trigger:focus {
   border-color:#3b82f6;
   box-shadow:0 0 0 3px rgba(59,130,246,.1);
 }
 
 /* dropdown */
 
-.booking-picker .dropdown-menu {
+.dropdown-menu {
   position:absolute;
   top:calc(100% + 6px);
   inset-inline:0;
@@ -907,13 +901,13 @@ timeDropdown.classList.add('hidden');
   overflow:hidden;
 }
 
-.booking-picker .dropdown-menu.hidden {
+.dropdown-menu.hidden {
   display:none;
 }
 
-/* scroll area */
+/* scroll */
 
-.booking-picker .scroll-container {
+.scroll-container {
   max-height:260px;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
@@ -921,7 +915,7 @@ timeDropdown.classList.add('hidden');
 
 /* items */
 
-.booking-picker .scroll-item {
+.scroll-item {
   padding:.9rem 2.6rem .9rem 1rem;
   font-size:1rem;
   cursor:pointer;
@@ -930,20 +924,20 @@ timeDropdown.classList.add('hidden');
   color:#1f2937;
 }
 
-.booking-picker .scroll-item:hover {
+.scroll-item:hover {
   background:#eff6ff;
   color:#2563eb;
 }
 
 /* selected */
 
-.booking-picker .scroll-item.selected {
+.scroll-item.selected {
   background:#1d4ed8;
   color:white;
   font-weight:600;
 }
 
-.booking-picker .scroll-item.selected::before {
+.scroll-item.selected::before {
   content:"✔";
   position:absolute;
   right:.9rem;
@@ -954,12 +948,14 @@ timeDropdown.classList.add('hidden');
 
 /* disabled */
 
-.booking-picker .scroll-item.disabled {
+.scroll-item.disabled {
   color:#9ca3af;
   cursor:not-allowed;
   pointer-events:none;
 }
 
+
+  
 /* ===== Mobile ===== */
 
 @media (max-width:640px){
