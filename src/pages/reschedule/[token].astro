@@ -14,11 +14,11 @@ if (!token) {
 const { locals } = Astro;
 const env = locals.runtime.env;
 
-const supabaseUrl = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
+const supabaseUrl    = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
 const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error('Missing Supabase configuration');
+  console.error('Missing Supabase configuration in environment variables');
   return Astro.redirect('/error?msg=server-config');
 }
 
@@ -26,10 +26,10 @@ const supabase = createClient(
   supabaseUrl,
   serviceRoleKey,
   {
-    auth:{
-      autoRefreshToken:false,
-      persistSession:false,
-      detectSessionInUrl:false
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
     }
   }
 );
@@ -45,12 +45,12 @@ const { data, error } = await supabase
 
 if (error || !data) {
   pageError = t('reschedule.invalid_link');
-}
+} 
 else if (data.status !== 'confirmed') {
   pageError = data.status === 'cancelled'
     ? t('reschedule.already_cancelled')
     : t('reschedule.already_modified');
-}
+} 
 else {
   booking = data;
 }
@@ -64,25 +64,39 @@ if (booking?.date_time) {
 
   formattedCurrentDate = dt.toLocaleDateString(
     Astro.currentLocale,
-    { weekday:'long', year:'numeric', month:'long', day:'numeric' }
+    {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }
   );
 
   formattedCurrentTime = dt.toLocaleTimeString(
     Astro.currentLocale,
-    { hour:'numeric', minute:'2-digit', hour12:true }
+    {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }
   );
 }
 
-const pageTitle = t('reschedule.title');
+const pageTitle          = t('reschedule.title');
 const currentAppointment = t('reschedule.current_appointment');
-const nameLabel = t('reschedule.name');
-const dateLabel = t('reschedule.date');
-const timeLabel = t('reschedule.time');
-const reasonLabel = t('reschedule.reason');
-const submitButton = t('reschedule.submit_button');
+const nameLabel          = t('reschedule.name');
+const dateLabel          = t('reschedule.date');
+const timeLabel          = t('reschedule.time');
+const reasonLabel        = t('reschedule.reason');
+const submitButton       = t('reschedule.submit_button');
 
-const successMsg = t('reschedule.success_message');
-const errorMsg = t('reschedule.error_message');
+const successMsg         = t('reschedule.success_message');
+const errorMsg           = t('reschedule.error_message');
+
+const selectDateFirst    = t('booking.select_date_first');
+const noTimesAvailable   = t('booking.no_times_available');
+const dateTriggerDefault = t('booking.date_trigger_default');
+const timeTriggerDefault = t('booking.time_trigger_default');
 ---
 
 <BaseLayout title={pageTitle}>
@@ -109,7 +123,9 @@ pageError ? (
 <h3>{currentAppointment}</h3>
 
 <p><strong>{nameLabel}:</strong> {booking.full_name}</p>
+
 <p><strong>{dateLabel}:</strong> {formattedCurrentDate}</p>
+
 <p><strong>{timeLabel}:</strong> {formattedCurrentTime}</p>
 
 {booking.reason && (
@@ -127,19 +143,45 @@ pageError ? (
 
 <input type="hidden" id="datetime" name="datetime" />
 
-<div class="booking-form__group">
+<div class="booking-form__row date-time-row">
+
+<div class="booking-form__group half">
 
 <label>{dateLabel} <span class="required">*</span></label>
 
-<div id="date-list" class="slots-grid"></div>
+<div
+class="custom-picker-trigger"
+id="date-trigger"
+tabindex="0"
+role="button"
+>
+{dateTriggerDefault}
+</div>
+
+<div class="dropdown-menu hidden" id="date-dropdown">
+<div class="scroll-container" id="date-scroll"></div>
+</div>
 
 </div>
 
-<div class="booking-form__group">
+<div class="booking-form__group half">
 
 <label>{timeLabel} <span class="required">*</span></label>
 
-<div id="time-list" class="slots-grid"></div>
+<div
+class="custom-picker-trigger"
+id="time-trigger"
+tabindex="0"
+role="button"
+>
+{timeTriggerDefault}
+</div>
+
+<div class="dropdown-menu hidden" id="time-dropdown">
+<div class="scroll-container" id="time-scroll"></div>
+</div>
+
+</div>
 
 </div>
 
@@ -177,327 +219,705 @@ data-error-msg={errorMsg}
 const CREATE_URL = `/api/reschedule`;
 const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
-const form = document.getElementById("rescheduleForm");
-const messageDiv = document.getElementById("message");
+const form = document.getElementById('rescheduleForm');
+
+const messageDiv = document.getElementById('message');
 
 const successMsg = messageDiv.dataset.successMsg;
 const errorMsgBase = messageDiv.dataset.errorMsg;
 
-const locale = document.documentElement.lang || "ar";
-const isArabic = locale.startsWith("ar");
+const locale = document.documentElement.lang || 'ar';
+const isArabic = locale.startsWith('ar');
 
-const dateList = document.getElementById("date-list");
-const timeList = document.getElementById("time-list");
+const t = {
 
-let selectedDate = "";
-let selectedTime = "";
+dateTriggerDefault:
+isArabic ? 'اختر التاريخ ←' : 'Choose date ←',
 
-function showMessage(text,type="info"){
+timeTriggerDefault:
+isArabic ? 'اختر الوقت ←' : 'Choose time ←',
 
-messageDiv.classList.remove("booking-form__message--hidden","success","error");
+selectDateFirst:
+isArabic ? 'اختر التاريخ أولاً' : 'Select date first',
 
-messageDiv.classList.add(type==="success"?"success":"error");
+noTimesAvailable:
+isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
 
-messageDiv.textContent=text;
+noAppointmentsDays:
+isArabic
+? 'لا توجد مواعيد متاحة في الفترة القادمة'
+: 'No appointments available in the upcoming days',
 
-}
+fetchError:
+isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
 
-function hideMessage(){
+sending:
+isArabic ? 'جاري الإرسال...' : 'Submitting...',
 
-messageDiv.classList.add("booking-form__message--hidden");
+missingDateTime:
+isArabic
+? 'يرجى اختيار التاريخ والوقت'
+: 'Please select date and time',
 
-}
+loadingAppointments:
+isArabic
+? 'جاري تحميل المواعيد...'
+: 'Loading appointments...'
 
-async function loadDates(){
+};
 
-dateList.innerHTML=`<div class="slot disabled">Loading...</div>`;
+let selectedDate = '';
+let selectedTime = '';
 
-try{
+let dateOriginalText = '';
+let timeOriginalText = '';
 
-const res=await fetch(AVAILABILITY_URL,{
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:"available_dates_next_days",
-days:15
-})
-});
+function showMessage(text, type = 'info') {
 
-const { available_dates=[] }=await res.json();
+messageDiv.classList.remove(
+'booking-form__message--hidden',
+'success',
+'error'
+);
 
-dateList.innerHTML="";
+messageDiv.classList.add(
+type === 'success' ? 'success' : 'error'
+);
 
-available_dates.forEach(dateStr=>{
-
-const d=new Date(dateStr);
-
-const day=d.toLocaleDateString(locale,{weekday:"long"});
-const month=d.toLocaleDateString(locale,{month:"long"});
-const num=d.getDate();
-
-const display=isArabic
-? `${day} ${num} ${month}`
-: `${day}, ${month} ${num}`;
-
-const div=document.createElement("div");
-
-div.className="slot";
-div.dataset.value=dateStr;
-div.textContent=display;
-
-dateList.appendChild(div);
-
-});
-
-}catch{
-
-dateList.innerHTML=`<div class="slot disabled">Error loading dates</div>`;
+messageDiv.textContent = text;
 
 }
 
-}
+function hideMessage() {
 
-dateList.addEventListener("click",e=>{
-
-const slot=e.target.closest(".slot");
-
-if(!slot||slot.classList.contains("disabled")) return;
-
-document.querySelectorAll("#date-list .slot")
-.forEach(el=>el.classList.remove("selected"));
-
-slot.classList.add("selected");
-
-selectedDate=slot.dataset.value;
-
-selectedTime="";
-
-timeList.innerHTML="";
-
-loadTimes();
-
-});
-
-async function loadTimes(){
-
-timeList.innerHTML=`<div class="slot disabled">Loading...</div>`;
-
-try{
-
-const res=await fetch(AVAILABILITY_URL,{
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:"available_times_for_date",
-date:selectedDate
-})
-});
-
-const { available_times=[] }=await res.json();
-
-timeList.innerHTML="";
-
-available_times.forEach(time24=>{
-
-const [h,m]=time24.split(":");
-const hour=parseInt(h);
-
-let display;
-
-if(isArabic){
-
-if(hour===12) display=`12:${m} ظهرًا`;
-else if(hour>12) display=`${hour-12}:${m} مساءً`;
-else display=`${hour}:${m} صباحًا`;
-
-}else{
-
-const hh=(hour%12)||12;
-display=`${hh}:${m} ${hour<12?'AM':'PM'}`;
+messageDiv.classList.add(
+'booking-form__message--hidden'
+);
 
 }
 
-const div=document.createElement("div");
+function resetPickers() {
 
-div.className="slot";
-div.dataset.value=time24;
-div.textContent=display;
+selectedDate = '';
+selectedTime = '';
 
-timeList.appendChild(div);
+document.getElementById('date-trigger').textContent =
+t.dateTriggerDefault;
 
-});
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
 
-}catch{
+document.getElementById('datetime').value = '';
 
-timeList.innerHTML=`<div class="slot disabled">Error loading times</div>`;
+document
+.querySelectorAll('.scroll-item.selected')
+.forEach(el => el.classList.remove('selected'));
 
 }
 
-}
-
-timeList.addEventListener("click",e=>{
-
-const slot=e.target.closest(".slot");
-
-if(!slot||slot.classList.contains("disabled")) return;
-
-document.querySelectorAll("#time-list .slot")
-.forEach(el=>el.classList.remove("selected"));
-
-slot.classList.add("selected");
-
-selectedTime=slot.dataset.value;
-
-});
-
-form.addEventListener("submit",async e=>{
+form.addEventListener('submit', async (e) => {
 
 e.preventDefault();
 
 hideMessage();
 
-if(!selectedDate||!selectedTime){
+if (!selectedDate || !selectedTime) {
 
-showMessage("يرجى اختيار التاريخ والوقت","error");
+showMessage(t.missingDateTime, 'error');
+
 return;
 
 }
 
-const payload=new FormData(form);
+const payload = new FormData(form);
 
-payload.set("datetime",`${selectedDate}T${selectedTime}:00`);
+payload.set(
+'datetime',
+`${selectedDate}T${selectedTime}:00`
+);
 
-try{
+showMessage(t.sending);
 
-const res=await fetch(CREATE_URL,{method:"POST",body:payload});
+try {
 
-const result=await res.json();
+const res = await fetch(
+CREATE_URL,
+{
+method: 'POST',
+body: payload
+}
+);
 
-if(res.ok){
+const result = await res.json();
 
-showMessage(result.message||successMsg,"success");
+if (res.ok) {
 
-}else{
+showMessage(
+result.message || successMsg,
+'success'
+);
 
-throw new Error(result.error||errorMsgBase);
+form.reset();
+
+resetPickers();
+
+}
+else {
+
+throw new Error(
+result.error || errorMsgBase
+);
 
 }
 
-}catch(err){
+}
+catch (err) {
 
-showMessage(err.message||errorMsgBase,"error");
+showMessage(
+err.message || errorMsgBase,
+'error'
+);
 
 }
 
 });
 
-loadDates();
+const dateTrigger = document.getElementById('date-trigger');
+const dateDropdown = document.getElementById('date-dropdown');
+const dateScroll = document.getElementById('date-scroll');
+
+async function generateDates() {
+
+dateScroll.innerHTML =
+`<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+
+try {
+
+const res = await fetch(
+AVAILABILITY_URL,
+{
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+query_type: "available_dates_next_days",
+days: 15
+})
+}
+);
+
+const { available_dates = [] } =
+await res.json();
+
+dateScroll.innerHTML = '';
+
+if (available_dates.length === 0) {
+
+dateScroll.innerHTML =
+`<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
+
+return;
+
+}
+
+available_dates.forEach(dateStr => {
+
+const d = new Date(dateStr);
+
+const dayName =
+d.toLocaleDateString(locale,
+{ weekday: 'long' });
+
+const monthName =
+d.toLocaleDateString(locale,
+{ month: 'long' });
+
+const dayNum =
+d.getDate()
+.toString()
+.padStart(2, '0');
+
+const year = d.getFullYear();
+
+const display =
+isArabic
+? `${dayName} ${dayNum} ${monthName} ${year}`
+: `${dayName}, ${monthName} ${dayNum}, ${year}`;
+
+const item = document.createElement('div');
+
+item.className = 'scroll-item';
+
+item.dataset.value = dateStr;
+
+item.textContent = display;
+
+dateScroll.appendChild(item);
+
+});
+
+}
+catch {
+
+dateScroll.innerHTML =
+`<div class="scroll-item disabled">${t.fetchError}</div>`;
+
+}
+
+}
+
+dateTrigger.addEventListener('click', async (e) => {
+
+e.stopPropagation();
+
+const willOpen =
+dateDropdown.classList.contains('hidden');
+
+document
+.getElementById('time-dropdown')
+?.classList.add('hidden');
+
+if (!willOpen) {
+
+dateDropdown.classList.add('hidden');
+
+}
+else {
+
+dateOriginalText =
+dateTrigger.textContent;
+
+dateTrigger.textContent =
+t.loadingAppointments;
+
+await generateDates();
+
+dateTrigger.textContent =
+dateOriginalText;
+
+dateDropdown.classList.remove('hidden');
+
+}
+
+});
+
+dateScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+dateScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+dateTrigger.textContent =
+item.textContent;
+
+selectedDate = item.dataset.value;
+
+dateDropdown.classList.add('hidden');
+
+/* reset الوقت عند تغيير التاريخ */
+selectedTime = '';
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
+
+generateTimes();
+
+});
+
+const timeTrigger =
+document.getElementById('time-trigger');
+
+const timeDropdown =
+document.getElementById('time-dropdown');
+
+const timeScroll =
+document.getElementById('time-scroll');
+
+async function generateTimes() {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+
+if (!selectedDate) {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
+
+return;
+
+}
+
+try {
+
+const res = await fetch(
+AVAILABILITY_URL,
+{
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+query_type: "available_times_for_date",
+date: selectedDate
+})
+}
+);
+
+const { available_times = [] } =
+await res.json();
+
+timeScroll.innerHTML = '';
+
+if (available_times.length === 0) {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
+
+return;
+
+}
+
+available_times.forEach(time24 => {
+
+const [hourStr, minuteStr] =
+time24.split(':');
+
+const hour = parseInt(hourStr, 10);
+const minute = parseInt(minuteStr, 10);
+
+let display;
+
+if (isArabic) {
+
+if (hour === 12) {
+
+display =
+`12:${minute.toString().padStart(2,'0')} ظهرًا`;
+
+}
+else if (hour > 12) {
+
+display =
+`${(hour-12).toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} مساءً`;
+
+}
+else {
+
+display =
+`${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} صباحًا`;
+
+}
+
+}
+else {
+
+const h = (hour % 12) || 12;
+
+display =
+`${h}:${minute.toString().padStart(2,'0')} ${hour<12?'AM':'PM'}`;
+
+}
+
+const item = document.createElement('div');
+
+item.className = 'scroll-item';
+
+item.dataset.value = time24;
+
+item.textContent = display;
+
+timeScroll.appendChild(item);
+
+});
+
+}
+catch {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.fetchError}</div>`;
+
+}
+
+}
+
+timeTrigger.addEventListener('click', async (e) => {
+
+e.stopPropagation();
+
+const willOpen =
+timeDropdown.classList.contains('hidden');
+
+document
+.getElementById('date-dropdown')
+?.classList.add('hidden');
+
+if (!willOpen) {
+
+timeDropdown.classList.add('hidden');
+
+}
+else {
+
+timeOriginalText =
+timeTrigger.textContent;
+
+timeTrigger.textContent =
+t.loadingAppointments;
+
+await generateTimes();
+
+timeTrigger.textContent =
+timeOriginalText;
+
+timeDropdown.classList.remove('hidden');
+
+}
+
+});
+
+timeScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+timeScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+timeTrigger.textContent =
+item.textContent;
+
+selectedTime = item.dataset.value;
+
+timeDropdown.classList.add('hidden');
+
+});
+
+document.addEventListener('click', (e) => {
+
+if (!dateTrigger.contains(e.target)
+&& !dateDropdown.contains(e.target)) {
+
+dateDropdown.classList.add('hidden');
+
+}
+
+if (!timeTrigger.contains(e.target)
+&& !timeDropdown.contains(e.target)) {
+
+timeDropdown.classList.add('hidden');
+
+}
+
+});
 
 </script>
 
 <style>
+  
+    .booking-form {
+      padding: 4rem 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-.booking-form{
-padding:4rem 1rem;
-background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
+    .booking-form__container {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      max-width: 480px;
+      width: 100%;
+    }
+
+    .booking-form__title {
+      font-size: 2.1rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2rem;
+      background: linear-gradient(to right, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .booking-form__form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+
+    .booking-form__group {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .required { color: #ef4444; font-size: 0.95rem; }
+
+    .current-appointment-info {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 0.8rem;
+  border: 1px solid #e2e8f0;
 }
 
-.booking-form__container{
-background:white;
-padding:2.5rem;
-border-radius:1rem;
-box-shadow:0 10px 30px rgba(0,0,0,0.08);
-max-width:520px;
-width:100%;
+.current-appointment-info h3 {
+  margin-top: 0;
+  color: #1e40af;
+  font-size: 1.3rem;
 }
 
-.booking-form__title{
-font-size:2rem;
-font-weight:700;
-text-align:center;
-margin-bottom:2rem;
+.current-appointment-info p {
+  margin: 0.6rem 0;
+  font-size: 1.05rem;
 }
 
-.booking-form__form{
-display:flex;
-flex-direction:column;
-gap:1.6rem;
+    .date-time-row {
+      display: flex;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .half { flex: 1; min-width: 140px; }
+
+    .booking-form__submit {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: linear-gradient(90deg, #3b82f6, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .booking-form__submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59,130,246,0.25);
+    }
+
+    .booking-form__message {
+      padding: 1rem;
+      border-radius: 0.6rem;
+      text-align: center;
+      font-weight: 500;
+      margin-top: 1rem;
+    }
+
+    .booking-form__message--hidden { display: none; }
+    .success { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+    .error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    .custom-picker-trigger {
+      padding: 0.85rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.6rem;
+      background: #f9fafb;
+      cursor: pointer;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1rem;
+      color: #374151;
+      user-select: none;
+    }
+
+    .custom-picker-trigger::after {
+      content: '▼';
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    .custom-picker-trigger:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 0.5rem;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 0.6rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      z-index: 50;
+      max-height: 280px;
+      overflow: hidden;
+    }
+
+    .dropdown-menu.hidden { display: none; }
+
+    .scroll-container {
+      max-height: 260px;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+}
+    
+:global(.scroll-item) {
+  padding: 1rem 3rem 1rem 1rem;
+  text-align: right;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #1f2937;
+  position: relative;
+  direction: rtl;
 }
 
-.booking-form__group{
-display:flex;
-flex-direction:column;
-gap:0.6rem;
+:global(.scroll-item:hover) {
+  background: #eff6ff;
+  color: #2563eb;
 }
 
-.required{color:#ef4444}
-
-.slots-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
-gap:10px;
+:global(.scroll-item.selected) {
+  background: #1d4ed8;
+  color: white;
+  font-weight: 600;
 }
 
-.slot{
-padding:10px;
-border:1px solid #d1d5db;
-border-radius:8px;
-text-align:center;
-cursor:pointer;
-background:#f9fafb;
+:global(.scroll-item.selected)::before {
+  content: "✔";
+  position: absolute;
+  right: 1rem;
 }
 
-.slot:hover{
-background:#eff6ff;
-}
 
-.slot.selected{
-background:#2563eb;
-color:white;
-border-color:#2563eb;
-font-weight:600;
-}
-
-.slot.disabled{
-background:#f3f4f6;
-color:#9ca3af;
-cursor:not-allowed;
-}
-
-.booking-form__submit{
-margin-top:1rem;
-padding:1rem;
-background:linear-gradient(90deg,#3b82f6,#6366f1);
-color:white;
-border:none;
-border-radius:0.6rem;
-font-weight:600;
-cursor:pointer;
-}
-
-.booking-form__message{
-padding:1rem;
-border-radius:0.6rem;
-text-align:center;
-margin-top:1rem;
-}
-
-.booking-form__message--hidden{display:none}
-
-.success{
-background:#ecfdf5;
-color:#065f46;
-}
-
-.error{
-background:#fef2f2;
-color:#991b1b;
-}
-
-</style>
+    @media (max-width: 640px) {
+      .date-time-row { flex-direction: column; gap: 1.4rem; }
+      .half { min-width: 100%; }
+      .booking-form__container { padding: 2rem 1.4rem; }
+    }
+  </style>
 
 </BaseLayout>
+
+
+
+
+      
