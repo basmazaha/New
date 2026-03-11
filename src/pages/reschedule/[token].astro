@@ -879,7 +879,8 @@ timeDropdown.classList.add('hidden');
       -webkit-overflow-scrolling: touch;
 }
     
-.scroll-item {
+
+:global(.scroll-item) {
   padding: 1rem 3rem 1rem 1rem;
   text-align: right;
   font-size: 1.05rem;
@@ -888,20 +889,20 @@ timeDropdown.classList.add('hidden');
   color: #1f2937;
   position: relative;
   direction: rtl;
-} 
+}
 
-.scroll-item:hover {
+:global(.scroll-item:hover) {
   background: #eff6ff;
   color: #2563eb;
 }
 
-.scroll-item.selected {
+:global(.scroll-item.selected) {
   background: #1d4ed8;
   color: white;
   font-weight: 600;
 }
 
-.scroll-item.selected::before {
+:global(.scroll-item.selected::before) {
   content: "✔";
   position: absolute;
   right: 1rem;
