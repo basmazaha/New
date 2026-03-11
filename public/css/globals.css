@@ -8,21 +8,24 @@
   --transition: all 0.25s ease;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
-  font-weight: 400;
-}
-
 html[lang='ar'] {
   direction: rtl;
   text-align: right;
 
+}
+
+html, body, .layout__body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.layout__main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
   // =============================================================
@@ -30,21 +33,19 @@ html[lang='ar'] {
   // =============================================================
 
     .booking-form {
-     padding: 4rem 1rem;
-     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-     min-height: 100vh;
+     flex: 1;
      display: flex;
-     align-items: center;
-     justify-content: center;          /* ← ده موجود بالفعل → تأكد إنه مش متجاوز */
+     align-items: flex-start;       /* أو center إذا أردت منتصف رأسي */
+     justify-content: center;
+     padding: 2rem 1rem 3rem;
+     width: 100%;
    }
 
-   .booking-form__container {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    width: min(100% - 2rem, 580px);     /* طريقة حديثة ومرنة */
-    margin-inline: auto;                /* الأهم → يركز الكونتينر في المنتصف سواء rtl أو ltr */
+    .booking-form__container {
+     width: 100%;
+     max-width: 520px;
+     margin-inline: auto;
+     box-sizing: border-box;
    }
 
     .booking-form__title {
@@ -213,6 +214,7 @@ html[lang='ar'] {
       .half { min-width: 100%; }
       .booking-form__container { padding: 2rem 1.4rem; }
     }
+
 
 
 
