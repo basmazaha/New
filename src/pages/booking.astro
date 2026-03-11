@@ -331,6 +331,24 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     }
 
     dateDropdown.classList.remove('hidden');
+
+/* scroll إلى التاريخ المختار */
+if (selectedDate) {
+
+  setTimeout(() => {
+
+    const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'auto',
+        block: 'center'
+      });
+    }
+
+  }, 10);
+
+}
   }
 });
 
@@ -468,7 +486,26 @@ generateTimes();
       timeTrigger.textContent = timeOriginalText;
     }
 
-    timeDropdown.classList.remove('hidden');
+timeDropdown.classList.remove('hidden');
+
+/* scroll إلى الوقت المختار */
+if (selectedTime) {
+
+  setTimeout(() => {
+
+    const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'auto',
+        block: 'center'
+      });
+    }
+
+  }, 10);
+
+}
+
   }
 });
 
