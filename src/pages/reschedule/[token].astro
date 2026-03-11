@@ -220,6 +220,7 @@ const CREATE_URL = `/api/reschedule`;
 const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
 const form = document.getElementById('rescheduleForm');
+
 const messageDiv = document.getElementById('message');
 
 const successMsg = messageDiv.dataset.successMsg;
@@ -261,12 +262,7 @@ isArabic
 loadingAppointments:
 isArabic
 ? 'جاري تحميل المواعيد...'
-: 'Loading appointments...',
-
-timeNoLongerAvailable:
-isArabic
-? 'هذا الموعد لم يعد متاحًا، يرجى اختيار وقت آخر'
-: 'This time slot is no longer available'
+: 'Loading appointments...'
 
 };
 
@@ -275,9 +271,6 @@ let selectedTime = '';
 
 let dateOriginalText = '';
 let timeOriginalText = '';
-
-/* cache للأوقات */
-const timesCache = {};
 
 function showMessage(text, type = 'info') {
 
@@ -296,7 +289,11 @@ messageDiv.textContent = text;
 }
 
 function hideMessage() {
-messageDiv.classList.add('booking-form__message--hidden');
+
+messageDiv.classList.add(
+'booking-form__message--hidden'
+);
+
 }
 
 function resetPickers() {
@@ -318,43 +315,6 @@ document
 
 }
 
-/* =========================
-   التحقق من توفر الوقت
-========================= */
-
-async function verifyTimeStillAvailable() {
-
-try {
-
-const res = await fetch(
-AVAILABILITY_URL,
-{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:"available_times_for_date",
-date:selectedDate
-})
-}
-);
-
-const {available_times=[]}=await res.json();
-
-return available_times.includes(selectedTime);
-
-}
-catch {
-
-return false;
-
-}
-
-}
-
-/* =========================
-   إرسال النموذج
-========================= */
-
 form.addEventListener('submit', async (e) => {
 
 e.preventDefault();
@@ -363,24 +323,7 @@ hideMessage();
 
 if (!selectedDate || !selectedTime) {
 
-showMessage(t.missingDateTime,'error');
-return;
-
-}
-
-/* تحقق أخير */
-
-showMessage(t.loadingAppointments);
-
-const stillAvailable = await verifyTimeStillAvailable();
-
-if (!stillAvailable) {
-
-showMessage(t.timeNoLongerAvailable,'error');
-
-timesCache[selectedDate] = null;
-
-await generateTimes();
+showMessage(t.missingDateTime, 'error');
 
 return;
 
@@ -400,8 +343,8 @@ try {
 const res = await fetch(
 CREATE_URL,
 {
-method:'POST',
-body:payload
+method: 'POST',
+body: payload
 }
 );
 
@@ -409,7 +352,10 @@ const result = await res.json();
 
 if (res.ok) {
 
-showMessage(result.message || successMsg,'success');
+showMessage(
+result.message || successMsg,
+'success'
+);
 
 form.reset();
 
@@ -418,288 +364,360 @@ resetPickers();
 }
 else {
 
-throw new Error(result.error || errorMsgBase);
+throw new Error(
+result.error || errorMsgBase
+);
 
 }
 
 }
-catch(err){
+catch (err) {
 
-showMessage(err.message || errorMsgBase,'error');
+showMessage(
+err.message || errorMsgBase,
+'error'
+);
 
 }
 
 });
 
-/* =========================
-   عناصر التاريخ
-========================= */
-
 const dateTrigger = document.getElementById('date-trigger');
 const dateDropdown = document.getElementById('date-dropdown');
 const dateScroll = document.getElementById('date-scroll');
 
-async function generateDates(){
+async function generateDates() {
 
 dateScroll.innerHTML =
 `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
-try{
+try {
 
 const res = await fetch(
 AVAILABILITY_URL,
 {
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:"available_dates_next_days",
-days:15
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+query_type: "available_dates_next_days",
+days: 15
 })
 }
 );
 
-const {available_dates=[]}=await res.json();
+const { available_dates = [] } =
+await res.json();
 
-dateScroll.innerHTML='';
+dateScroll.innerHTML = '';
 
-if(!available_dates.length){
+if (available_dates.length === 0) {
 
-dateScroll.innerHTML=
+dateScroll.innerHTML =
 `<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
 
 return;
 
 }
 
-const fragment=document.createDocumentFragment();
+available_dates.forEach(dateStr => {
 
-available_dates.forEach(dateStr=>{
+const d = new Date(dateStr);
 
-const d=new Date(dateStr);
+const dayName =
+d.toLocaleDateString(locale,
+{ weekday: 'long' });
 
-const dayName=
-d.toLocaleDateString(locale,{weekday:'long'});
+const monthName =
+d.toLocaleDateString(locale,
+{ month: 'long' });
 
-const monthName=
-d.toLocaleDateString(locale,{month:'long'});
+const dayNum =
+d.getDate()
+.toString()
+.padStart(2, '0');
 
-const dayNum=
-d.getDate().toString().padStart(2,'0');
+const year = d.getFullYear();
 
-const year=d.getFullYear();
-
-const display=
+const display =
 isArabic
-?`${dayName} ${dayNum} ${monthName} ${year}`
-:`${dayName}, ${monthName} ${dayNum}, ${year}`;
+? `${dayName} ${dayNum} ${monthName} ${year}`
+: `${dayName}, ${monthName} ${dayNum}, ${year}`;
 
-const item=document.createElement('div');
+const item = document.createElement('div');
 
-item.className='scroll-item';
-item.dataset.value=dateStr;
-item.textContent=display;
+item.className = 'scroll-item';
 
-fragment.appendChild(item);
+item.dataset.value = dateStr;
+
+item.textContent = display;
+
+dateScroll.appendChild(item);
 
 });
 
-dateScroll.appendChild(fragment);
-
 }
-catch{
+catch {
 
-dateScroll.innerHTML=
+dateScroll.innerHTML =
 `<div class="scroll-item disabled">${t.fetchError}</div>`;
 
 }
 
 }
 
-/* =========================
-   اختيار التاريخ
-========================= */
+dateTrigger.addEventListener('click', async (e) => {
 
-dateScroll.addEventListener('click',(e)=>{
+e.stopPropagation();
 
-const item=e.target.closest('.scroll-item');
+const willOpen =
+dateDropdown.classList.contains('hidden');
 
-if(!item || item.classList.contains('disabled')) return;
+document
+.getElementById('time-dropdown')
+?.classList.add('hidden');
 
-dateScroll
-.querySelectorAll('.scroll-item')
-.forEach(el=>el.classList.remove('selected'));
-
-item.classList.add('selected');
-
-dateTrigger.textContent=item.textContent;
-
-selectedDate=item.dataset.value;
+if (!willOpen) {
 
 dateDropdown.classList.add('hidden');
 
-/* reset time */
+}
+else {
 
-selectedTime='';
-document.getElementById('time-trigger').textContent=
-t.timeTriggerDefault;
+dateOriginalText =
+dateTrigger.textContent;
 
-/* تحميل الأوقات */
+dateTrigger.textContent =
+t.loadingAppointments;
+
+await generateDates();
+
+dateTrigger.textContent =
+dateOriginalText;
+
+dateDropdown.classList.remove('hidden');
+
+}
+
+});
+
+dateScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+dateScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+dateTrigger.textContent =
+item.textContent;
+
+selectedDate = item.dataset.value;
+
+dateDropdown.classList.add('hidden');
 
 generateTimes();
 
 });
 
-/* =========================
-   عناصر الوقت
-========================= */
+const timeTrigger =
+document.getElementById('time-trigger');
 
-const timeTrigger=document.getElementById('time-trigger');
-const timeDropdown=document.getElementById('time-dropdown');
-const timeScroll=document.getElementById('time-scroll');
+const timeDropdown =
+document.getElementById('time-dropdown');
 
-async function generateTimes(){
+const timeScroll =
+document.getElementById('time-scroll');
 
-if(timesCache[selectedDate]){
+async function generateTimes() {
 
-timeScroll.innerHTML='';
-
-const fragment=document.createDocumentFragment();
-
-timesCache[selectedDate].forEach(el=>{
-fragment.appendChild(el.cloneNode(true));
-});
-
-timeScroll.appendChild(fragment);
-
-return;
-
-}
-
-timeScroll.innerHTML=
+timeScroll.innerHTML =
 `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
-if(!selectedDate){
+if (!selectedDate) {
 
-timeScroll.innerHTML=
+timeScroll.innerHTML =
 `<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
 
 return;
 
 }
 
-try{
+try {
 
-const res=await fetch(
+const res = await fetch(
 AVAILABILITY_URL,
 {
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:"available_times_for_date",
-date:selectedDate
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+query_type: "available_times_for_date",
+date: selectedDate
 })
 }
 );
 
-const {available_times=[]}=await res.json();
+const { available_times = [] } =
+await res.json();
 
-timeScroll.innerHTML='';
+timeScroll.innerHTML = '';
 
-if(!available_times.length){
+if (available_times.length === 0) {
 
-timeScroll.innerHTML=
+timeScroll.innerHTML =
 `<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
 
 return;
 
 }
 
-const fragment=document.createDocumentFragment();
-const items=[];
+available_times.forEach(time24 => {
 
-available_times.forEach(time24=>{
+const [hourStr, minuteStr] =
+time24.split(':');
 
-const [hourStr,minuteStr]=time24.split(':');
-
-const hour=parseInt(hourStr,10);
-const minute=parseInt(minuteStr,10);
+const hour = parseInt(hourStr, 10);
+const minute = parseInt(minuteStr, 10);
 
 let display;
 
-if(isArabic){
+if (isArabic) {
 
-if(hour===12){
+if (hour === 12) {
 
-display=`12:${minute.toString().padStart(2,'0')} ظهرًا`;
-
-}
-else if(hour>12){
-
-display=`${(hour-12).toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} مساءً`;
+display =
+`12:${minute.toString().padStart(2,'0')} ظهرًا`;
 
 }
-else{
+else if (hour > 12) {
 
-display=`${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} صباحًا`;
+display =
+`${(hour-12).toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} مساءً`;
 
 }
+else {
 
-}
-else{
-
-const h=(hour%12)||12;
-
-display=`${h}:${minute.toString().padStart(2,'0')} ${hour<12?'AM':'PM'}`;
+display =
+`${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} صباحًا`;
 
 }
 
-const item=document.createElement('div');
+}
+else {
 
-item.className='scroll-item';
-item.dataset.value=time24;
-item.textContent=display;
+const h = (hour % 12) || 12;
 
-fragment.appendChild(item);
+display =
+`${h}:${minute.toString().padStart(2,'0')} ${hour<12?'AM':'PM'}`;
 
-items.push(item.cloneNode(true));
+}
+
+const item = document.createElement('div');
+
+item.className = 'scroll-item';
+
+item.dataset.value = time24;
+
+item.textContent = display;
+
+timeScroll.appendChild(item);
 
 });
 
-timeScroll.appendChild(fragment);
-
-timesCache[selectedDate]=items;
-
 }
-catch{
+catch {
 
-timeScroll.innerHTML=
+timeScroll.innerHTML =
 `<div class="scroll-item disabled">${t.fetchError}</div>`;
 
 }
 
 }
 
-/* =========================
-   اختيار الوقت
-========================= */
+timeTrigger.addEventListener('click', async (e) => {
 
-timeScroll.addEventListener('click',(e)=>{
+e.stopPropagation();
 
-const item=e.target.closest('.scroll-item');
+const willOpen =
+timeDropdown.classList.contains('hidden');
 
-if(!item || item.classList.contains('disabled')) return;
+document
+.getElementById('date-dropdown')
+?.classList.add('hidden');
+
+if (!willOpen) {
+
+timeDropdown.classList.add('hidden');
+
+}
+else {
+
+timeOriginalText =
+timeTrigger.textContent;
+
+timeTrigger.textContent =
+t.loadingAppointments;
+
+await generateTimes();
+
+timeTrigger.textContent =
+timeOriginalText;
+
+timeDropdown.classList.remove('hidden');
+
+}
+
+});
+
+timeScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
 
 timeScroll
 .querySelectorAll('.scroll-item')
-.forEach(el=>el.classList.remove('selected'));
+.forEach(el => el.classList.remove('selected'));
 
 item.classList.add('selected');
 
-timeTrigger.textContent=item.textContent;
+timeTrigger.textContent =
+item.textContent;
 
-selectedTime=item.dataset.value;
+selectedTime = item.dataset.value;
 
 timeDropdown.classList.add('hidden');
+
+});
+
+document.addEventListener('click', (e) => {
+
+if (!dateTrigger.contains(e.target)
+&& !dateDropdown.contains(e.target)) {
+
+dateDropdown.classList.add('hidden');
+
+}
+
+if (!timeTrigger.contains(e.target)
+&& !timeDropdown.contains(e.target)) {
+
+timeDropdown.classList.add('hidden');
+
+}
 
 });
 
@@ -853,7 +871,7 @@ timeDropdown.classList.add('hidden');
       max-height: 260px;
       overflow-y: auto;
       scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling: touch;}
     
 .scroll-item {
   padding: 1rem 3rem 1rem 1rem;
