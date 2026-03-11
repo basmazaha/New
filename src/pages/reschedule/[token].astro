@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { useTranslations } from '../../i18n/utils.ts';
 import { createClient } from '@supabase/supabase-js';
 
-const t = useTranslations(Astro.currentLocale);
+const t = useTranslations(Astro.currentLocale ?? 'ar');
 
 const { token } = Astro.params;
 
@@ -39,502 +39,691 @@ let pageError = null;
 
 const { data, error } = await supabase
   .from('appointments')
-  .select('id, full_name, email, appointment_date, appointment_time, reason, status')
+  .select('id, full_name, email, date_time, reason, status')
   .eq('manage_token', token)
   .single();
 
 if (error || !data) {
   pageError = t('reschedule.invalid_link');
-} else if (data.status !== 'confirmed') {
+} 
+else if (data.status !== 'confirmed') {
   pageError = data.status === 'cancelled'
     ? t('reschedule.already_cancelled')
     : t('reschedule.already_modified');
-} else {
+} 
+else {
   booking = data;
 }
 
-// تنسيق التاريخ والوقت الحاليين (فقط إذا وُجد booking)
-const formattedCurrentDate = booking?.appointment_date
-  ? new Date(booking.appointment_date).toLocaleDateString(Astro.currentLocale, {
+let formattedCurrentDate = '—';
+let formattedCurrentTime = '—';
+
+if (booking?.date_time) {
+
+  const dt = new Date(booking.date_time);
+
+  formattedCurrentDate = dt.toLocaleDateString(
+    Astro.currentLocale,
+    {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    })
-  : '—';
+    }
+  );
 
-const formattedCurrentTime = booking?.appointment_time
-  ? new Date(`1970-01-01T${booking.appointment_time}`).toLocaleTimeString(Astro.currentLocale, {
+  formattedCurrentTime = dt.toLocaleTimeString(
+    Astro.currentLocale,
+    {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
-    })
-  : '—';
+    }
+  );
+}
 
-// نصوص الصفحة
-const pageTitle             = t('reschedule.title');
-const currentAppointment    = t('reschedule.current_appointment');
-const nameLabel             = t('reschedule.name');
-const dateLabel             = t('reschedule.date');
-const timeLabel             = t('reschedule.time');
-const reasonLabel           = t('reschedule.reason');
-const submitButtonText      = t('reschedule.submit_button');
-const successMsg            = t('reschedule.success_message');
-const errorMsgBase          = t('reschedule.error_message');
+const pageTitle          = t('reschedule.title');
+const currentAppointment = t('reschedule.current_appointment');
+const nameLabel          = t('reschedule.name');
+const dateLabel          = t('reschedule.date');
+const timeLabel          = t('reschedule.time');
+const reasonLabel        = t('reschedule.reason');
+const submitButton       = t('reschedule.submit_button');
 
-const dateTriggerDefault    = t('booking.date_trigger_default');
-const timeTriggerDefault    = t('booking.time_trigger_default');
-const selectDateFirst       = t('booking.select_date_first');
-const noTimesAvailable      = t('booking.no_times_available');
+const successMsg         = t('reschedule.success_message');
+const errorMsg           = t('reschedule.error_message');
+
+const selectDateFirst    = t('booking.select_date_first');
+const noTimesAvailable   = t('booking.no_times_available');
+const dateTriggerDefault = t('booking.date_trigger_default');
+const timeTriggerDefault = t('booking.time_trigger_default');
 ---
 
 <BaseLayout title={pageTitle}>
-  <section class="booking-form">
-    <div class="booking-form__container">
-      <h1 class="booking-form__title">{pageTitle}</h1>
 
-      {
-        pageError ? (
-          <div class="booking-form__message booking-form__message--error">
-            {pageError}
-          </div>
-        ) : booking ? (
-          <>
-            <div class="current-appointment-info">
-              <h3>{currentAppointment}</h3>
-              <p><strong>{nameLabel}:</strong> {booking.full_name}</p>
-              <p><strong>{dateLabel}:</strong> {formattedCurrentDate}</p>
-              <p><strong>{timeLabel}:</strong> {formattedCurrentTime}</p>
-              {booking.reason && (
-                <p><strong>{reasonLabel}:</strong> {booking.reason}</p>
-              )}
-            </div>
+<section class="booking-form">
 
-            <form id="rescheduleForm" class="booking-form__form">
-              <input type="hidden" name="booking_id" value={booking.id} />
-              <input type="hidden" name="token" value={token} />
-              <input type="hidden" name="full_name" value={booking.full_name} />
-              <input type="hidden" name="email" value={booking.email} />
+<div class="booking-form__container">
 
-              <div class="booking-form__row date-time-row">
-                <div class="booking-form__group half">
-                  <label for="appointment_date_display">{dateLabel} <span class="required">*</span></label>
-                  <div class="custom-picker-trigger" id="date-trigger" tabindex="0" role="button">
-                    {dateTriggerDefault}
-                  </div>
-                  <input type="hidden" id="appointment_date" name="appointment_date" required />
-                  
-                  <div class="dropdown-menu hidden" id="date-dropdown">
-                    <div class="scroll-container" id="date-scroll"></div>
-                  </div>
-                </div>
+<h1 class="booking-form__title">{pageTitle}</h1>
 
-                <div class="booking-form__group half">
-                  <label for="appointment_time_display">{timeLabel} <span class="required">*</span></label>
-                  <div class="custom-picker-trigger" id="time-trigger" tabindex="0" role="button">
-                    {timeTriggerDefault}
-                  </div>
-                  <input type="hidden" id="appointment_time" name="appointment_time" required />
-                  
-                  <div class="dropdown-menu hidden" id="time-dropdown">
-                    <div class="scroll-container" id="time-scroll"></div>
-                  </div>
-                </div>
-              </div>
+{
+pageError ? (
 
-              <div id="message" class="booking-form__message booking-form__message--hidden"
-                   data-success-msg={successMsg} data-error-msg={errorMsgBase}></div>
+<div class="booking-form__message error">
+{pageError}
+</div>
 
-              <button type="submit" class="booking-form__submit">{submitButtonText}</button>
-            </form>
-          </>
-        ) : (
-          <div class="booking-form__message booking-form__message--error">
-            {t('reschedule.invalid_link')}
-          </div>
-        )
-      }
-    </div>
-  </section>
+) : booking ? (
+
+<>
+
+<div class="current-appointment-info">
+
+<h3>{currentAppointment}</h3>
+
+<p><strong>{nameLabel}:</strong> {booking.full_name}</p>
+
+<p><strong>{dateLabel}:</strong> {formattedCurrentDate}</p>
+
+<p><strong>{timeLabel}:</strong> {formattedCurrentTime}</p>
+
+{booking.reason && (
+<p><strong>{reasonLabel}:</strong> {booking.reason}</p>
+)}
+
+</div>
+
+<form id="rescheduleForm" class="booking-form__form">
+
+<input type="hidden" name="booking_id" value={booking.id} />
+<input type="hidden" name="token" value={token} />
+<input type="hidden" name="full_name" value={booking.full_name} />
+<input type="hidden" name="email" value={booking.email} />
+
+<input type="hidden" id="datetime" name="datetime" />
+
+<div class="booking-form__row date-time-row">
+
+<div class="booking-form__group half">
+
+<label>{dateLabel} <span class="required">*</span></label>
+
+<div
+class="custom-picker-trigger"
+id="date-trigger"
+tabindex="0"
+role="button"
+>
+{dateTriggerDefault}
+</div>
+
+<div class="dropdown-menu hidden" id="date-dropdown">
+<div class="scroll-container" id="date-scroll"></div>
+</div>
+
+</div>
+
+<div class="booking-form__group half">
+
+<label>{timeLabel} <span class="required">*</span></label>
+
+<div
+class="custom-picker-trigger"
+id="time-trigger"
+tabindex="0"
+role="button"
+>
+{timeTriggerDefault}
+</div>
+
+<div class="dropdown-menu hidden" id="time-dropdown">
+<div class="scroll-container" id="time-scroll"></div>
+</div>
+
+</div>
+
+</div>
+
+<div
+id="message"
+class="booking-form__message booking-form__message--hidden"
+data-success-msg={successMsg}
+data-error-msg={errorMsg}
+></div>
+
+<button type="submit" class="booking-form__submit">
+{submitButton}
+</button>
+
+</form>
+
+</>
+
+) : (
+
+<div class="booking-form__message error">
+{t('reschedule.invalid_link')}
+</div>
+
+)
+
+}
+
+</div>
+
+</section>
 
 <script>
 
-  const EDGE_FUNCTION_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
+const CREATE_URL = `/api/reschedule`;
+const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
-  const form = document.getElementById('rescheduleForm');
-  const messageDiv = document.getElementById('message');
-  const successMsg = messageDiv.dataset.successMsg;
-  const errorMsgBase = messageDiv.dataset.errorMsg;
+const form = document.getElementById('rescheduleForm');
 
-  const locale = document.documentElement.lang || 'ar';
-  const isArabic = locale.startsWith('ar');
+const messageDiv = document.getElementById('message');
 
-  const dateTriggerDefault = isArabic ? 'اختر التاريخ ←' : 'Choose date ←';
-  const timeTriggerDefault = isArabic ? 'اختر الوقت ←' : 'Choose time ←';
-  const selectDateFirstMsg = isArabic ? 'اختر التاريخ أولاً' : 'Select date first';
-  const noTimesAvailableMsg = isArabic ? 'لا توجد مواعيد متاحة' : 'No times available';
+const successMsg = messageDiv.dataset.successMsg;
+const errorMsgBase = messageDiv.dataset.errorMsg;
 
-  let offDays = new Set();
+const locale = document.documentElement.lang || 'ar';
+const isArabic = locale.startsWith('ar');
 
-  async function fetchOffDays() {
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ query_type: "off_days" }),
-      });
+const t = {
 
-      if (!response.ok) return;
-      const json = await response.json();
-      if (json.off_days) {
-        offDays = new Set(json.off_days);
-      }
-    } catch (err) {
-      console.error("Failed to load off days", err);
-    }
-  }
+dateTriggerDefault:
+isArabic ? 'اختر التاريخ ←' : 'Choose date ←',
 
-  await fetchOffDays();
+timeTriggerDefault:
+isArabic ? 'اختر الوقت ←' : 'Choose time ←',
 
-  // ──────────────────────────────────────────────
-  //                 إرسال النموذج
-  // ──────────────────────────────────────────────
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
-      messageDiv.textContent = isArabic ? 'جاري الإرسال...' : 'Submitting...';
+selectDateFirst:
+isArabic ? 'اختر التاريخ أولاً' : 'Select date first',
 
-      const formData = new FormData(form);
+noTimesAvailable:
+isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
 
-      try {
-        const lang = document.documentElement.lang || 'ar';
-        const response = await fetch(`/api/reschedule?lang=${lang}`, {
-          method: 'POST',
-          body: formData
-        });
+noAppointmentsDays:
+isArabic
+? 'لا توجد مواعيد متاحة في الفترة القادمة'
+: 'No appointments available in the upcoming days',
 
-        const result = await response.json();
+fetchError:
+isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
 
-        if (response.ok) {
-          messageDiv.classList.add('success');
-          messageDiv.textContent = result.message || successMsg;
+sending:
+isArabic ? 'جاري الإرسال...' : 'Submitting...',
 
-          form.querySelector('button[type="submit"]').disabled = true;
+missingDateTime:
+isArabic
+? 'يرجى اختيار التاريخ والوقت'
+: 'Please select date and time',
 
-          document.getElementById('date-trigger').textContent = dateTriggerDefault;
-          document.getElementById('time-trigger').textContent = timeTriggerDefault;
-          document.getElementById('appointment_date').value = '';
-          document.getElementById('appointment_time').value = '';
+loadingAppointments:
+isArabic
+? 'جاري تحميل المواعيد...'
+: 'Loading appointments...'
 
-          document.getElementById('date-dropdown')?.classList.add('hidden');
-          document.getElementById('time-dropdown')?.classList.add('hidden');
-        } else {
-          throw new Error(result.error || errorMsgBase);
-        }
-      } catch (err) {
-        messageDiv.classList.add('error');
-        messageDiv.textContent = err.message || errorMsgBase;
-      }
-    });
-  }
+};
 
-  // ──────────────────────────────────────────────
-  //     جلب المواعيد المحجوزة لتاريخ معين
-  // ──────────────────────────────────────────────
-  async function getBookedTimesForDate(dateStr) {
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ date: dateStr }),
-      });
+let selectedDate = '';
+let selectedTime = '';
 
-      if (!response.ok) return new Set();
-      const json = await response.json();
-      if (json.error) return new Set();
-      const booked = json.booked || [];
-      return new Set(Array.isArray(booked) ? booked : []);
-    } catch {
-      return new Set();
-    }
-  }
+let dateOriginalText = '';
+let timeOriginalText = '';
 
-  // ──────────────────────────────────────────────
-  //               التواريخ dropdown – فقط الأيام المتاحة
-  // ──────────────────────────────────────────────
-  const dateTrigger = document.getElementById('date-trigger');
-  const dateDropdown = document.getElementById('date-dropdown');
-  const dateScroll = document.getElementById('date-scroll');
-  const dateHidden = document.getElementById('appointment_date');
+function showMessage(text, type = 'info') {
 
-  async function generateDates() {
-    if (!dateScroll) return;
-    dateScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+messageDiv.classList.remove(
+'booking-form__message--hidden',
+'success',
+'error'
+);
 
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ 
-          query_type: "available_dates_next_days",
-          days: 15 
-        }),
-      });
+messageDiv.classList.add(
+type === 'success' ? 'success' : 'error'
+);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+messageDiv.textContent = text;
 
-      const json = await response.json();
-      const availableDates = json.available_dates || [];
+}
 
-      dateScroll.innerHTML = '';
+function hideMessage() {
 
-      if (availableDates.length === 0) {
-        dateScroll.innerHTML = `<div class="scroll-item disabled">لا توجد مواعيد متاحة في الفترة القادمة</div>`;
-        return;
-      }
+messageDiv.classList.add(
+'booking-form__message--hidden'
+);
 
-      for (const dateStr of availableDates) {
-        const d = new Date(dateStr);
-        const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
-        const monthName = d.toLocaleDateString(locale, { month: 'long' });
-        const dayNum    = d.getDate().toString().padStart(2, '0');
-        const year      = d.getFullYear();
+}
 
-        const display = isArabic
-          ? `${dayName} ${dayNum} ${monthName} ${year}`
-          : `${dayName}, ${monthName} ${dayNum}, ${year}`;
+function resetPickers() {
 
-        const item = document.createElement('div');
-        item.className = 'scroll-item';
-        item.dataset.value = dateStr;
-        item.textContent = display;
-        dateScroll.appendChild(item);
-      }
+selectedDate = '';
+selectedTime = '';
 
-    } catch (err) {
-      console.error("Error loading available dates:", err);
-      dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
-    }
-  }
+document.getElementById('date-trigger').textContent =
+t.dateTriggerDefault;
 
-  if (dateScroll) {
-    dateScroll.addEventListener('click', (e) => {
-      const item = e.target.closest('.scroll-item');
-      if (!item || item.classList.contains('disabled')) return;
-      dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
-      item.classList.add('selected');
-    });
-  }
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
 
-  if (dateTrigger) {
-    dateTrigger.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const isOpen = !dateDropdown.classList.contains('hidden');
+document.getElementById('datetime').value = '';
 
-      document.getElementById('time-dropdown')?.classList.add('hidden');
+document
+.querySelectorAll('.scroll-item.selected')
+.forEach(el => el.classList.remove('selected'));
 
-      if (isOpen) {
-        dateDropdown.classList.add('hidden');
-      } else {
-        await generateDates();
-        dateDropdown.classList.remove('hidden');
+}
 
-        if (dateHidden.value) {
-          const sel = dateScroll.querySelector(`[data-value="${dateHidden.value}"]`);
-          if (sel) {
-            sel.classList.add('selected');
-            sel.scrollIntoView({ block: 'center', behavior: 'instant' });
-          }
-        }
-      }
-    });
-  }
+form.addEventListener('submit', async (e) => {
 
-  // ──────────────────────────────────────────────
-  //               الأوقات dropdown – ديناميكي من working_hours
-  // ──────────────────────────────────────────────
-  const timeTrigger = document.getElementById('time-trigger');
-  const timeDropdown = document.getElementById('time-dropdown');
-  const timeScroll = document.getElementById('time-scroll');
-  const timeHidden = document.getElementById('appointment_time');
+e.preventDefault();
 
-  async function generateTimes() {
-    if (!timeScroll) return;
-    timeScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+hideMessage();
 
-    const selectedDate = dateHidden.value;
-    if (!selectedDate) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${selectDateFirstMsg}</div>`;
-      return;
-    }
+if (!selectedDate || !selectedTime) {
 
-    // 1. جلب ساعات العمل الديناميكية من working_hours عبر Edge Function
-    let config;
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ 
-          query_type: "working_hours_for_date",
-          date: selectedDate
-        }),
-      });
+showMessage(t.missingDateTime, 'error');
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+return;
 
-      config = await response.json();
-    } catch (err) {
-      console.error("Error loading working hours:", err);
-      timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب ساعات العمل</div>`;
-      return;
-    }
+}
 
-    if (!config || !config.start_time || !config.end_time) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
-      return;
-    }
+const payload = new FormData(form);
 
-    // 2. جلب الحجوزات المحجوزة
-    const booked = await getBookedTimesForDate(selectedDate);
+payload.set(
+'datetime',
+`${selectedDate}T${selectedTime}:00`
+);
 
-    // 3. حساب الدقائق من start_time و end_time
-    const [startH, startM] = config.start_time.split(':').map(Number);
-    const [endH, endM] = config.end_time.split(':').map(Number);
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    const slotDuration = config.slot_duration_minutes || 15;
+showMessage(t.sending);
 
-    // 4. التحقق من اليوم الحالي (أقرب موعد بعد ساعة)
-    const now = new Date();
-    const selectedDateObj = new Date(selectedDate);
-    const isToday = 
-      selectedDateObj.getFullYear() === now.getFullYear() &&
-      selectedDateObj.getMonth() === now.getMonth() &&
-      selectedDateObj.getDate() === now.getDate();
+try {
 
-    let minStartMinutes = startMinutes;
-    if (isToday) {
-      const earliestAllowed = new Date(now.getTime() + 60 * 60 * 1000);  // بعد ساعة
-      let minutes = earliestAllowed.getHours() * 60 + earliestAllowed.getMinutes();
-      const remainder = minutes % slotDuration;
-      if (remainder !== 0) {
-        minutes += slotDuration - remainder;  // تقريب لأعلى إلى أقرب فتحة
-      }
-      minStartMinutes = Math.max(minutes, startMinutes);
-    }
+const res = await fetch(
+CREATE_URL,
+{
+method: 'POST',
+body: payload
+}
+);
 
-    // 5. توليد الفتحات المتاحة ديناميكيًا
-    let hasAvailable = false;
-    timeScroll.innerHTML = '';
+const result = await res.json();
 
-    for (let m = minStartMinutes; m < endMinutes; m += slotDuration) {
-      const hour = Math.floor(m / 60);
-      const minute = m % 60;
-      const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+if (res.ok) {
 
-      if (booked.has(time24)) continue;
+showMessage(
+result.message || successMsg,
+'success'
+);
 
-      hasAvailable = true;
+form.reset();
 
-      let display = isArabic
-        ? (hour === 12 ? `12:${minute.toString().padStart(2, '0')} ظهرًا`
-           : hour > 12 ? `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`
-           : `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`)
-        : `${(hour % 12 || 12)}:${minute.toString().padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
+resetPickers();
 
-      const item = document.createElement('div');
-      item.className = 'scroll-item';
-      item.dataset.value = time24;
-      item.textContent = display;
-      timeScroll.appendChild(item);
-    }
+}
+else {
 
-    if (!hasAvailable) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
-    }
-  }
+throw new Error(
+result.error || errorMsgBase
+);
 
-  if (timeScroll) {
-    timeScroll.addEventListener('click', (e) => {
-      const item = e.target.closest('.scroll-item');
-      if (!item) return;
-      timeScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
-      item.classList.add('selected');
-    });
-  }
+}
 
-  if (timeTrigger) {
-    timeTrigger.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const isOpen = !timeDropdown.classList.contains('hidden');
+}
+catch (err) {
 
-      document.getElementById('date-dropdown')?.classList.add('hidden');
+showMessage(
+err.message || errorMsgBase,
+'error'
+);
 
-      if (isOpen) {
-        timeDropdown.classList.add('hidden');
-      } else {
-        await generateTimes();
-        timeDropdown.classList.remove('hidden');
+}
 
-        if (timeHidden.value) {
-          const sel = timeScroll.querySelector(`[data-value="${timeHidden.value}"]`);
-          if (sel) {
-            sel.classList.add('selected');
-            sel.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          }
-        }
-      }
-    });
-  }
+});
 
-  // إغلاق القوائم المنسدلة عند النقر خارجها
-  document.addEventListener('click', (e) => {
-    if (!dateTrigger?.contains(e.target) && !dateDropdown?.contains(e.target)) {
-      dateDropdown?.classList.add('hidden');
-    }
-    if (!timeTrigger?.contains(e.target) && !timeDropdown?.contains(e.target)) {
-      timeDropdown?.classList.add('hidden');
-    }
-  });
+const dateTrigger = document.getElementById('date-trigger');
+const dateDropdown = document.getElementById('date-dropdown');
+const dateScroll = document.getElementById('date-scroll');
 
-  // اختيار العنصر وإغلاق القائمة
-  [dateScroll, timeScroll].forEach(scroll => {
-    if (scroll) {
-      scroll.addEventListener('click', (e) => {
-        const item = e.target.closest('.scroll-item');
-        if (!item || item.classList.contains('disabled')) return;
+async function generateDates() {
 
-        const trigger  = scroll.id === 'date-scroll' ? dateTrigger : timeTrigger;
-        const hidden   = scroll.id === 'date-scroll' ? dateHidden : timeHidden;
-        const dropdown = scroll.id === 'date-scroll' ? dateDropdown : timeDropdown;
+dateScroll.innerHTML =
+`<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
-        if (trigger && hidden && dropdown) {
-          trigger.textContent = item.textContent;
-          hidden.value = item.dataset.value;
-          dropdown.classList.add('hidden');
-        }
-      });
-    }
-  });
+try {
+
+const res = await fetch(
+AVAILABILITY_URL,
+{
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+query_type: "available_dates_next_days",
+days: 15
+})
+}
+);
+
+const { available_dates = [] } =
+await res.json();
+
+dateScroll.innerHTML = '';
+
+if (available_dates.length === 0) {
+
+dateScroll.innerHTML =
+`<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
+
+return;
+
+}
+
+available_dates.forEach(dateStr => {
+
+const d = new Date(dateStr);
+
+const dayName =
+d.toLocaleDateString(locale,
+{ weekday: 'long' });
+
+const monthName =
+d.toLocaleDateString(locale,
+{ month: 'long' });
+
+const dayNum =
+d.getDate()
+.toString()
+.padStart(2, '0');
+
+const year = d.getFullYear();
+
+const display =
+isArabic
+? `${dayName} ${dayNum} ${monthName} ${year}`
+: `${dayName}, ${monthName} ${dayNum}, ${year}`;
+
+const item = document.createElement('div');
+
+item.className = 'scroll-item';
+
+item.dataset.value = dateStr;
+
+item.textContent = display;
+
+dateScroll.appendChild(item);
+
+});
+
+}
+catch {
+
+dateScroll.innerHTML =
+`<div class="scroll-item disabled">${t.fetchError}</div>`;
+
+}
+
+}
+
+dateTrigger.addEventListener('click', async (e) => {
+
+e.stopPropagation();
+
+const willOpen =
+dateDropdown.classList.contains('hidden');
+
+document
+.getElementById('time-dropdown')
+?.classList.add('hidden');
+
+if (!willOpen) {
+
+dateDropdown.classList.add('hidden');
+
+}
+else {
+
+dateOriginalText =
+dateTrigger.textContent;
+
+dateTrigger.textContent =
+t.loadingAppointments;
+
+await generateDates();
+
+dateTrigger.textContent =
+dateOriginalText;
+
+dateDropdown.classList.remove('hidden');
+
+}
+
+});
+
+dateScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+dateScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+dateTrigger.textContent =
+item.textContent;
+
+selectedDate = item.dataset.value;
+
+dateDropdown.classList.add('hidden');
+
+generateTimes();
+
+});
+
+const timeTrigger =
+document.getElementById('time-trigger');
+
+const timeDropdown =
+document.getElementById('time-dropdown');
+
+const timeScroll =
+document.getElementById('time-scroll');
+
+async function generateTimes() {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+
+if (!selectedDate) {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
+
+return;
+
+}
+
+try {
+
+const res = await fetch(
+AVAILABILITY_URL,
+{
+method: 'POST',
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+query_type: "available_times_for_date",
+date: selectedDate
+})
+}
+);
+
+const { available_times = [] } =
+await res.json();
+
+timeScroll.innerHTML = '';
+
+if (available_times.length === 0) {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
+
+return;
+
+}
+
+available_times.forEach(time24 => {
+
+const [hourStr, minuteStr] =
+time24.split(':');
+
+const hour = parseInt(hourStr, 10);
+const minute = parseInt(minuteStr, 10);
+
+let display;
+
+if (isArabic) {
+
+if (hour === 12) {
+
+display =
+`12:${minute.toString().padStart(2,'0')} ظهرًا`;
+
+}
+else if (hour > 12) {
+
+display =
+`${(hour-12).toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} مساءً`;
+
+}
+else {
+
+display =
+`${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} صباحًا`;
+
+}
+
+}
+else {
+
+const h = (hour % 12) || 12;
+
+display =
+`${h}:${minute.toString().padStart(2,'0')} ${hour<12?'AM':'PM'}`;
+
+}
+
+const item = document.createElement('div');
+
+item.className = 'scroll-item';
+
+item.dataset.value = time24;
+
+item.textContent = display;
+
+timeScroll.appendChild(item);
+
+});
+
+}
+catch {
+
+timeScroll.innerHTML =
+`<div class="scroll-item disabled">${t.fetchError}</div>`;
+
+}
+
+}
+
+timeTrigger.addEventListener('click', async (e) => {
+
+e.stopPropagation();
+
+const willOpen =
+timeDropdown.classList.contains('hidden');
+
+document
+.getElementById('date-dropdown')
+?.classList.add('hidden');
+
+if (!willOpen) {
+
+timeDropdown.classList.add('hidden');
+
+}
+else {
+
+timeOriginalText =
+timeTrigger.textContent;
+
+timeTrigger.textContent =
+t.loadingAppointments;
+
+await generateTimes();
+
+timeTrigger.textContent =
+timeOriginalText;
+
+timeDropdown.classList.remove('hidden');
+
+}
+
+});
+
+timeScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+timeScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+timeTrigger.textContent =
+item.textContent;
+
+selectedTime = item.dataset.value;
+
+timeDropdown.classList.add('hidden');
+
+});
+
+document.addEventListener('click', (e) => {
+
+if (!dateTrigger.contains(e.target)
+&& !dateDropdown.contains(e.target)) {
+
+dateDropdown.classList.add('hidden');
+
+}
+
+if (!timeTrigger.contains(e.target)
+&& !timeDropdown.contains(e.target)) {
+
+timeDropdown.classList.add('hidden');
+
+}
+
+});
 
 </script>
+
+
  
 
   <style>
