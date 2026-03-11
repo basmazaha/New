@@ -216,7 +216,7 @@ data-error-msg={errorMsg}
 
 <script>
 
-const CREATE_URL = `/api/reschedule`;
+const CREATE_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
 const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
 const form = document.getElementById('rescheduleForm');
@@ -329,12 +329,13 @@ return;
 
 }
 
-const payload = new FormData(form);
-
-payload.set(
-'datetime',
-`${selectedDate}T${selectedTime}:00`
-);
+const payload = {
+  booking_id: form.booking_id.value,
+  token: form.token.value,
+  full_name: form.full_name.value,
+  email: form.email.value,
+  datetime: `${selectedDate}T${selectedTime}:00`
+};
 
 showMessage(t.sending);
 
@@ -344,7 +345,10 @@ const res = await fetch(
 CREATE_URL,
 {
 method: 'POST',
-body: payload
+headers: {
+'Content-Type': 'application/json'
+},
+body: JSON.stringify(payload)
 }
 );
 
