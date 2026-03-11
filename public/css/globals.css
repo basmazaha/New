@@ -29,8 +29,6 @@ html[lang='ar'] {
   //  Booking Form Style
   // =============================================================
 
-.text_under_input{ color: blue; font-size: 0.8rem; }
-
 .booking-form {
       padding: 4rem 1rem;
       background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -74,7 +72,7 @@ html[lang='ar'] {
 
     .required { color: #ef4444; font-size: 0.95rem; }
 
-    
+    .text_under_input{ color: blue; font-size: 0.8rem; }
 
     input, textarea {
       padding: 0.85rem 1rem;
@@ -179,33 +177,33 @@ html[lang='ar'] {
       scroll-snap-type: y mandatory;
       -webkit-overflow-scrolling: touch;}
 
-.scroll-item {
-  padding: 1rem 3rem 1rem 1rem;
-  text-align: right;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: #1f2937;
-  position: relative;
-  direction: rtl;
-}
+    .scroll-item {
+     padding: 1rem 3rem 1rem 1rem;
+     text-align: right;
+     font-size: 1.05rem;
+     cursor: pointer;
+     transition: all 0.15s;
+     color: #1f2937;
+     position: relative;
+     direction: rtl;
+    }
 
-.scroll-item:hover {
-  background: #eff6ff;
-  color: #2563eb;
-}
+    .scroll-item:hover {
+     background: #eff6ff;
+     color: #2563eb;
+    }
 
-.scroll-item.selected {
-  background: #1d4ed8 !important;
-  color: white;
-  font-weight: 600;
-}
+   .scroll-item.selected {
+    background: #1d4ed8 !important;
+    color: white;
+    font-weight: 600;
+   }
 
-.scroll-item.selected::before {
-  content: "✔" !important;
-  position: absolute;
-  right: 1rem;
-}
+   .scroll-item.selected::before {
+    content: "✔" !important;
+    position: absolute;
+    right: 1rem;
+  }
     
 
 
@@ -215,3 +213,4 @@ html[lang='ar'] {
       .half { min-width: 100%; }
       .booking-form__container { padding: 2rem 1.4rem; }
     }
+
