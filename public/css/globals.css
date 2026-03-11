@@ -29,23 +29,23 @@ html[lang='ar'] {
   //  Booking Form Style
   // =============================================================
 
-.booking-form {
-      padding: 4rem 1rem;
-      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .booking-form {
+     padding: 4rem 1rem;
+     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+     min-height: 100vh;
+     display: flex;
+     align-items: center;
+     justify-content: center;          /* ← ده موجود بالفعل → تأكد إنه مش متجاوز */
+   }
 
-    .booking-form__container {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      max-width: 480px;
-      width: 100%;
-    }
+   .booking-form__container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    width: min(100% - 2rem, 580px);     /* طريقة حديثة ومرنة */
+    margin-inline: auto;                /* الأهم → يركز الكونتينر في المنتصف سواء rtl أو ltr */
+   }
 
     .booking-form__title {
       font-size: 2.1rem;
@@ -213,5 +213,6 @@ html[lang='ar'] {
       .half { min-width: 100%; }
       .booking-form__container { padding: 2rem 1.4rem; }
     }
+
 
 
