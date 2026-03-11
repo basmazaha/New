@@ -896,16 +896,11 @@ timeDropdown.classList.add('hidden');
   color: #2563eb;
 }
 
-:global(.scroll-item.selected) {
+:global(.scroll-item.selected),
+:global(.scroll-item.selected:hover) {
   background: #1d4ed8;
   color: white;
   font-weight: 600;
-}
-
-:global(.scroll-item.selected::before) {
-  content: "✔";
-  position: absolute;
-  right: 1rem;
 }
 
     @media (max-width: 640px) {
