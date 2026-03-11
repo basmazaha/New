@@ -37,12 +37,16 @@ html, body, .layout__body {
      display: flex;
      align-items: flex-start;
      justify-content: center;
-     padding: 2.5rem 1rem 4rem;
+     padding: 2.5rem 1rem 2.5rem;
      width: 100%;
      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
    }
 
     .booking-form__container {
+     background: white;
+     padding: 2.5rem 2rem;
+     border-radius: 1.25rem;
+     box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
      width: 100%;
      max-width: 520px;
      margin-inline: auto;
@@ -225,6 +229,7 @@ html, body, .layout__body {
         padding-bottom: 6rem;
   }
 }
+
 
 
 
