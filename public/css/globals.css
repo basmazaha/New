@@ -194,13 +194,13 @@ html[lang='ar'] {
     }
 
    .scroll-item.selected {
-    background: #1d4ed8 !important;
+    background: #1d4ed8; 
     color: white;
     font-weight: 600;
    }
 
    .scroll-item.selected::before {
-    content: "✔" !important;
+    content: "✔";
     position: absolute;
     right: 1rem;
   }
@@ -213,4 +213,5 @@ html[lang='ar'] {
       .half { min-width: 100%; }
       .booking-form__container { padding: 2rem 1.4rem; }
     }
+
 
