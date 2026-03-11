@@ -877,6 +877,18 @@ timeDropdown.classList.add('hidden');
       overflow-y: auto;
       scroll-snap-type: y mandatory;
       -webkit-overflow-scrolling: touch;}
+
+      .scroll-item.selected {
+       background: #1d4ed8;
+       color: white;
+      font-weight: 600;
+   }
+
+    .scroll-item.selected::before {
+     content: "✔";
+     position: absolute;
+     right: 1rem;
+   }
     
 .scroll-item {
   padding: 1rem 3rem 1rem 1rem;
@@ -894,17 +906,6 @@ timeDropdown.classList.add('hidden');
   color: #2563eb;
 }
 
-.scroll-item.selected {
-  background: #1d4ed8;
-  color: white;
-  font-weight: 600;
-}
-
-.scroll-item.selected::before {
-  content: "✔";
-  position: absolute;
-  right: 1rem;
-}
 
 
     @media (max-width: 640px) {
