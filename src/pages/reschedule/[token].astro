@@ -426,17 +426,13 @@ available_dates.forEach(dateStr => {
 const d = new Date(dateStr);
 
 const dayName =
-d.toLocaleDateString(locale,
-{ weekday: 'long' });
+d.toLocaleDateString(locale,{ weekday: 'long' });
 
 const monthName =
-d.toLocaleDateString(locale,
-{ month: 'long' });
+d.toLocaleDateString(locale,{ month: 'long' });
 
 const dayNum =
-d.getDate()
-.toString()
-.padStart(2, '0');
+d.getDate().toString().padStart(2,'0');
 
 const year = d.getFullYear();
 
@@ -448,10 +444,13 @@ isArabic
 const item = document.createElement('div');
 
 item.className = 'scroll-item';
-
 item.dataset.value = dateStr;
-
 item.textContent = display;
+
+/* هنا الإضافة الجديدة */
+if (dateStr === selectedDate) {
+item.classList.add('selected');
+}
 
 dateScroll.appendChild(item);
 
@@ -588,8 +587,7 @@ return;
 
 available_times.forEach(time24 => {
 
-const [hourStr, minuteStr] =
-time24.split(':');
+const [hourStr, minuteStr] = time24.split(':');
 
 const hour = parseInt(hourStr, 10);
 const minute = parseInt(minuteStr, 10);
@@ -598,32 +596,32 @@ let display;
 
 if (isArabic) {
 
-if (hour === 12) {
+  if (hour === 12) {
 
-display =
-`12:${minute.toString().padStart(2,'0')} ظهرًا`;
+    display =
+      `12:${minute.toString().padStart(2,'0')} ظهرًا`;
 
-}
-else if (hour > 12) {
+  }
+  else if (hour > 12) {
 
-display =
-`${(hour-12).toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} مساءً`;
+    display =
+      `${(hour-12).toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} مساءً`;
+
+  }
+  else {
+
+    display =
+      `${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} صباحًا`;
+
+  }
 
 }
 else {
 
-display =
-`${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} صباحًا`;
+  const h = (hour % 12) || 12;
 
-}
-
-}
-else {
-
-const h = (hour % 12) || 12;
-
-display =
-`${h}:${minute.toString().padStart(2,'0')} ${hour<12?'AM':'PM'}`;
+  display =
+    `${h}:${minute.toString().padStart(2,'0')} ${hour < 12 ? 'AM' : 'PM'}`;
 
 }
 
@@ -634,6 +632,11 @@ item.className = 'scroll-item';
 item.dataset.value = time24;
 
 item.textContent = display;
+
+/* إعادة تظليل الوقت المختار عند فتح القائمة مرة أخرى */
+if (time24 === selectedTime) {
+  item.classList.add('selected');
+}
 
 timeScroll.appendChild(item);
 
