@@ -457,13 +457,21 @@ dateScroll.appendChild(item);
 });
 
 /* النزول تلقائياً إلى الوقت المختار */
+
+setTimeout(() => {
+
 const selectedItem = dateScroll.querySelector('.scroll-item.selected');
 
 if (selectedItem) {
-  selectedItem.scrollIntoView({
-    block: 'center'
-  });
+
+selectedItem.scrollIntoView({
+behavior: 'auto',
+block: 'center'
+});
+
 }
+
+}, 50);
 
 }
 catch {
@@ -652,13 +660,21 @@ timeScroll.appendChild(item);
 });
 
 /* النزول تلقائياً إلى الوقت المختار */
+
+setTimeout(() => {
+
 const selectedItem = timeScroll.querySelector('.scroll-item.selected');
 
 if (selectedItem) {
-  selectedItem.scrollIntoView({
-    block: 'center'
-  });
+
+selectedItem.scrollIntoView({
+behavior: 'auto',
+block: 'center'
+});
+
 }
+
+}, 50);
 
 }
 catch {
