@@ -22,5 +22,8 @@ body {
 html[lang='ar'] {
   direction: rtl;
   text-align: right;
+
 }
 
+.under_input{ color: blue; font-size: 0.8rem; }
+.under_input{ color: blue; font-size: 0.8rem; }
