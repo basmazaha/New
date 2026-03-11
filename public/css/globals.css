@@ -26,6 +26,7 @@ html, body, .layout__body {
   display: flex;
   flex-direction: column;
   width: 100%;
+  justify-content: flex-start;
 }
 
   // =============================================================
@@ -34,11 +35,11 @@ html, body, .layout__body {
 
     .booking-form {
      display: flex;
-     align-items: center;
+     align-items: flex-start;
      justify-content: center;
-     padding: 3rem 1rem 5rem;
+     padding: 2.5rem 1rem 4rem;
      width: 100%;
-     min-height: 70vh;
+     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
    }
 
     .booking-form__container {
@@ -216,6 +217,14 @@ html, body, .layout__body {
     }
 
 
+    
+      /* اختياري: إذا أردت مسافة أكبر قليلاً أعلى النموذج على الشاشات الكبيرة */
+    @media (min-width: 1024px) {
+       .booking-form {
+        padding-top: 4rem;
+        padding-bottom: 6rem;
+  }
+}
 
 
 
