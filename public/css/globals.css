@@ -32,7 +32,7 @@ body {
 
 .layout__main {
   flex: 1;
-  padding: 3rem 1rem;
+  min-height: 100dvh;
 }
 
 
@@ -70,7 +70,9 @@ body {
 ======================================== */
 
 .booking-form {
-
+  
+  padding: 3rem 1rem;
+  
   display: flex;
 
   justify-content: center;
@@ -477,6 +479,7 @@ body {
   }
 
 }
+
 
 
 
