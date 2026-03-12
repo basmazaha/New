@@ -1,4 +1,4 @@
-:root 
+:root {
 --card-color: pink;
 --primary: #2563eb;
 --primary-hover: #1d4ed8;
@@ -41,7 +41,7 @@ width: 100%;
       padding: 4rem 1rem;
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
 }
 
@@ -260,6 +260,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
