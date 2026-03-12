@@ -48,7 +48,7 @@ width: 100%;
 
 .booking-form__container {  
   background: white;  
-  padding: 2rem;  
+  padding: 2.5rem;  
   border-radius: 1.25rem;  
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);  
   width: 100%;  
@@ -247,7 +247,7 @@ right: 1rem;
 @media (max-width: 640px) {  
   .date-time-row { flex-direction: column; gap: 1.4rem; }  
   .half { min-width: 100%; }  
-  .booking-form{padding:1rem 1rem 5rem 1rem; }
+  /* .booking-form{padding:1rem 1rem 5rem 1rem; } */
   .booking-form__container { padding: 2rem 1.4rem; }
 }  
 
@@ -261,6 +261,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
