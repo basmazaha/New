@@ -32,9 +32,16 @@ const supabase = createClient(
 
 const { data: appointment, error } = await supabase
   .from('appointments')
-  .select('id, full_name, email, appointment_date, appointment_time, reason, status')
+  .select('id, full_name, email, date_time, reason, status')
   .eq('manage_token', token)
   .maybeSingle();
+
+const { data: settings } = await supabase
+  .from("business_settings")
+  .select("timezone")
+  .maybeSingle();
+
+const businessTimezone = settings?.timezone || "Africa/Cairo";
 
 if (error || !appointment) {
   return Astro.redirect('/404');
@@ -84,20 +91,22 @@ const cancelErrorText        = t('manage.cancel_error');
 const notAvailableText       = t('manage.not_available_after');
 
 // تنسيق التاريخ والوقت حسب اللغة
-const formattedDate = appointment.appointment_date
-  ? new Date(appointment.appointment_date).toLocaleDateString(Astro.currentLocale, {
+const formattedDate = appointment.date_time
+  ? new Date(appointment.date_time).toLocaleDateString(Astro.currentLocale, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: businessTimezone
     })
   : '—';
 
-const formattedTime = appointment.appointment_time
-  ? new Date(`1970-01-01T${appointment.appointment_time}`).toLocaleTimeString(Astro.currentLocale, {
+const formattedTime = appointment.date_time
+  ? new Date(appointment.date_time).toLocaleTimeString(Astro.currentLocale, {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: businessTimezone
     })
   : '—';
 ---
@@ -152,7 +161,7 @@ const formattedTime = appointment.appointment_time
 
     <div class="actions">
       <a
-        href={`/en/reschedule/${token}`}
+        href={`/reschedule/${token}`}
         class="btn reschedule"
         id="rescheduleLink"
       >
