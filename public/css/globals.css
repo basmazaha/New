@@ -33,7 +33,8 @@ width: 100%;
 // =============================================================
 
 .booking-form {  
-  padding: 4rem 4rem 4rem 4rem;  
+  padding-top: 6rem;
+  padding-bottom:6rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);  
   min-height: 100vh;  
   display: flex;  
@@ -227,4 +228,5 @@ right: 1rem;
 
 }
 }
+
 
