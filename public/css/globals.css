@@ -9,9 +9,14 @@ html[lang="ar"] textarea {
   text-align: right;
 }
 
+html[lang="ar"] body {
+  font-family: var(--font-ar);
+}
+
 body {
   margin: 0;
   padding: 0;
+  font-family: var(--font-en);
 }
 
 .layout__body {
@@ -30,6 +35,8 @@ body {
 ======================================== */
 
 :root {
+  --font-en: "Inter", sans-serif;
+  --font-ar: "Tajawal", sans-serif;
 
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
@@ -466,6 +473,7 @@ body {
   }
 
 }
+
 
 
 
