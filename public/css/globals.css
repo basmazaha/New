@@ -14,17 +14,20 @@ html[lang='ar'] {
 
 }
 
-html, body, .layout__body {
+html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  overflow-x: hidden;
+  height: 100%;
 }
 
-.layout__main {
+.layout__body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.layout__main {
+  flex: 1;
   width: 100%;
 }
 
@@ -227,6 +230,7 @@ html, body, .layout__body {
         padding-bottom: 6rem;
   }
 }
+
 
 
 
