@@ -25,11 +25,12 @@ body {
 .layout__body {
   display: flex;
   flex-direction: column;
+  height: 100%;
   
 }
 
 .layout__main {
-  flex: auto;
+  flex: 1;
 }
 
 
@@ -476,6 +477,7 @@ body {
   }
 
 }
+
 
 
 
