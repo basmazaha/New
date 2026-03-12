@@ -198,7 +198,7 @@ textarea { resize: vertical; min-height: 100px; }
 }
 
 .scroll-item.selected {
-background: red;
+background: (--primary-hover);
 color: white;
 font-weight: 600;
 }
@@ -226,6 +226,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
