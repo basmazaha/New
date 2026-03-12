@@ -33,21 +33,23 @@ html, body, .layout__body {
   // =============================================================
 
     .booking-form {
-     width: 100%;
-     max-width: 540px;
-     margin: 0 auto;
-     padding: 2.5rem 1.5rem;
-   }
+      padding: 4rem 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     .booking-form__container {
-     background: white;
-     padding: 2.5rem 2rem;
-     border-radius: 1.25rem;
-     box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
-     width: 100%;
-     max-width: 520px;
-     margin-inline: auto;
-     box-sizing: border-box;
+      background: white;
+      padding: 9rem 9rem;
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 520px;
+      margin-inline: auto;
+      box-sizing: border-box;
    }
 
     .booking-form__title {
@@ -226,6 +228,7 @@ html, body, .layout__body {
         padding-bottom: 6rem;
   }
 }
+
 
 
 
