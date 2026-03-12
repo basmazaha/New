@@ -29,7 +29,7 @@ body {
 }
 
 .layout__main {
-  flex: 1;
+  flex: auto;
 }
 
 
@@ -476,6 +476,7 @@ body {
   }
 
 }
+
 
 
 
