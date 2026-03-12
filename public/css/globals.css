@@ -37,15 +37,6 @@ justify-content: center;
 //  Booking Form Style
 // =============================================================
 
-.booking-form {
-  padding: 4rem 1rem;
-  background: green;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .booking-form__container {  
   background: white;  
   padding: 2.5rem;  
@@ -233,6 +224,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
