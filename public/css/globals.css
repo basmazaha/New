@@ -33,7 +33,6 @@ html, body, .layout__body {
   // =============================================================
 
     .booking-form {
-     min-height: 100vh;
      display: flex;
      align-items: center;
      justify-content: center;
@@ -229,6 +228,7 @@ html, body, .layout__body {
         padding-bottom: 6rem;
   }
 }
+
 
 
 
