@@ -42,6 +42,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={fullNamePlaceholder} 
       maxlength="40" 
       minlength="3"
+      oninvalid="this.setCustomValidity('Please fill out this field')"
+      oninput="this.setCustomValidity('')"
     />
   </div>
 
