@@ -15,12 +15,14 @@ text-align: right;
 }
 
 html, body, .layout__body {
+background: yellow;
 margin: 0;
 padding: 0;
 width: 100%;
 }
 
 .layout__main {
+background: red;
 min-height: 100vh;
 display: flex;
 flex-direction: column;
@@ -225,6 +227,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
