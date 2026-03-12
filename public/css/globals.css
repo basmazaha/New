@@ -9,14 +9,17 @@ html[lang="ar"] textarea {
   text-align: right;
 }
 
-html[lang="ar"] body {
+:lang(ar) {
   font-family: var(--font-ar);
+}
+
+:lang(en) {
+  font-family: var(--font-en);
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-en);
 }
 
 .layout__body {
@@ -473,6 +476,7 @@ body {
   }
 
 }
+
 
 
 
