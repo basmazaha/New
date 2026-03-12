@@ -30,6 +30,8 @@ min-height: 100vh;
 display: flex;
 flex-direction: column;
 width: 100%;
+align-items:cener;
+justify-content: center;
 }
 
 // =============================================================
@@ -232,6 +234,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
