@@ -70,23 +70,4 @@ const alternates = supportedLocales.map((locale) => ({
   </body>
 </html>
 
-<style is:global>
-  .layout__body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-  }
 
-  .layout__main {
-    flex-grow: 1;
-  }
-
-  /* 
-    يمكنك لاحقًا إضافة modifiers مثل:
-    .layout__main--padded { padding: 2rem; }
-    .layout__navbar--sticky { position: sticky; top: 0; z-index: 1000; }
-  */
-</style>
