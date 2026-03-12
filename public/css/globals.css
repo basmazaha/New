@@ -33,7 +33,7 @@ html, body, .layout__body {
   // =============================================================
 
     .booking-form {
-      padding: 4rem 1rem;
+      padding: 4rem 4rem 4rem 4rem;
       background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       min-height: 100vh;
       display: flex;
@@ -43,7 +43,7 @@ html, body, .layout__body {
 
     .booking-form__container {
       background: white;
-      padding: 9rem 9rem;
+      padding: 2.5rem;
       border-radius: 1.25rem;
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
       width: 100%;
@@ -228,6 +228,7 @@ html, body, .layout__body {
         padding-bottom: 6rem;
   }
 }
+
 
 
 
