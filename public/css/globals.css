@@ -24,8 +24,8 @@ min-height: 100vh;
 }
 
 .layout__main {
-padding-bottom:0;
-padding-top:0;
+padding-bottom:2rem;
+padding-top:2rem;
 background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 min-height: 100vh;
 display: flex;
@@ -232,6 +232,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
