@@ -186,7 +186,7 @@ body {
 
   color: #9ca3af;
 
-  text-align: start;
+  text-align: left;
 
 }
 
@@ -199,7 +199,7 @@ body {
 
   font-size: .8rem;
 
-  color: var(--text-light);
+  color: var(--primary);
 
   margin-top: 2px;
 
@@ -455,6 +455,7 @@ body {
   }
 
 }
+
 
 
 
