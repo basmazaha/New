@@ -26,7 +26,7 @@ body {
   --text: #0f172a;
   --text-light: #475569;
 
-  --bg: #ffffff;
+  --bg: linear-gradient(135deg,#f8fafc,#e2e8f0);
   --border: #e2e8f0;
 
   --success: #16a34a;
@@ -455,6 +455,7 @@ body {
   }
 
 }
+
 
 
 
