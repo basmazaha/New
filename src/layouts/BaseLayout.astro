@@ -1,6 +1,6 @@
 ---
 import Navbar from '../components/Navbar.astro';
-
+import Footer from '../components/Footer.astro';
 
 const { title = 'الموقع', description = '' } = Astro.props;
 
@@ -66,7 +66,7 @@ const alternates = supportedLocales.map((locale) => ({
       <slot />
     </main>
 
-   <!-- Footer class="layout__footer" / -->
+   <Footer class="layout__footer" />
   </body>
 </html>
 
