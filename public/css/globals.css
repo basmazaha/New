@@ -1,4 +1,10 @@
-html[lang="ar"] input{
+html[lang="ar"] {
+  direction: rtl;
+  text-align: right;
+}
+
+html[lang="ar"] input,
+html[lang="ar"] textarea {
   direction: rtl;
   text-align: right;
 }
@@ -460,6 +466,7 @@ body {
   }
 
 }
+
 
 
 
