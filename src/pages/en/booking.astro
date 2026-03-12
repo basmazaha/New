@@ -15,13 +15,11 @@ const reasonLabel         = t('booking.reason');
 const reasonPlaceholder   = t('booking.reason_placeholder');
 const dateLabel           = t('booking.date');
 const timeLabel           = t('booking.time');
-const requiredText        = t('booking.required');
 const submitButton        = t('buttons.submit');
 const successMsg          = t('booking.success_message');
 const errorMsg            = t('booking.error_message');
 
-const chooseDateText      = t('booking.choose_date');
-const chooseTimeText      = t('booking.choose_time');
+
 const selectDateFirst     = t('booking.select_date_first');
 const noTimesAvailable    = t('booking.no_times_available');
 const dateTriggerDefault  = t('booking.date_trigger_default');
@@ -34,66 +32,122 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       <h1 class="booking-form__title">{pageTitle}</h1>
 
       <form id="bookingForm" class="booking-form__form">
-        <div class="booking-form__group">
-          <label for="full_name">{fullNameLabel} <span class="required">*</span></label>
-          <input type="text" id="full_name" name="full_name" required placeholder={fullNamePlaceholder} maxlength="40" minlength="3"/>
-        </div>
+  <div class="booking-form__group">
+    <label for="full_name">{fullNameLabel} <span class="required">*</span></label>
+    <input 
+      type="text" 
+      id="full_name" 
+      name="full_name" 
+      required 
+      placeholder={fullNamePlaceholder} 
+      maxlength="40" 
+      minlength="3"
+    />
+  </div>
 
-        <div class="booking-form__group">
-          <label for="email">{emailLabel} <span class="required">*</span></label>
-          <input type="email" id="email" name="email" required placeholder={emailPlaceholder} autocomplete="email" maxlength="70"/>
-   <div class="under_input"> A confirmation email will be sent to your inbox</div>    
-        </div>
+  <div class="booking-form__group">
+    <label for="email">{emailLabel} <span class="required">*</span></label>
+    <input 
+      type="email" 
+      id="email" 
+      name="email" 
+      required 
+      placeholder={emailPlaceholder} 
+      autocomplete="email" 
+      maxlength="70"
+    />
+    <div class="text_under_input">
+      A confirmation email will be sent to your inbox
+    </div>
+  </div>
 
-        <div class="booking-form__group">
-          <label for="phone">{phoneLabel} <span class="required">*</span></label>
-          <input type="tel" id="phone" name="phone" required placeholder={phonePlaceholder} autocomplete="tel" inputmode="numeric" pattern="[0-9+]*" maxlength="20" title="Only numbers allowed" />
-        </div>
+  <div class="booking-form__group">
+    <label for="phone">{phoneLabel} <span class="required">*</span></label>
+    <input 
+      type="tel" 
+      id="phone" 
+      name="phone" 
+      required 
+      placeholder={phonePlaceholder} 
+      autocomplete="tel" 
+      inputmode="numeric" 
+      pattern="[0-9+]*" 
+      maxlength="20" 
+      title="Only numbers allowed"
+    />
+  </div>
 
-        <div class="booking-form__row date-time-row">
-          <div class="booking-form__group half">
-            <label for="appointment_date_display">{dateLabel} <span class="required">*</span></label>
-            <div class="custom-picker-trigger" id="date-trigger" tabindex="0" role="button">
-              {dateTriggerDefault}
-            </div>
-            <input type="hidden" id="appointment_date" name="appointment_date" required />
-            
-            <!-- Dropdown للتواريخ -->
-            <div class="dropdown-menu hidden" id="date-dropdown">
-              <div class="scroll-container" id="date-scroll"></div>
-            </div>
-          </div>
+  <div class="booking-form__row date-time-row">
+    <div class="booking-form__group half">
+      <label for="appointment_date_display">{dateLabel} <span class="required">*</span></label>
+      <div 
+        class="custom-picker-trigger" 
+        id="date-trigger" 
+        tabindex="0" 
+        role="button"
+      >
+        {dateTriggerDefault}
+      </div>
+      
+      
+      <div class="dropdown-menu hidden" id="date-dropdown">
+        <div class="scroll-container" id="date-scroll"></div>
+      </div>
+    </div>
 
-          <div class="booking-form__group half">
-            <label for="appointment_time_display">{timeLabel} <span class="required">*</span></label>
-            <div class="custom-picker-trigger" id="time-trigger" tabindex="0" role="button">
-              {timeTriggerDefault}
-            </div>
-            <input type="hidden" id="appointment_time" name="appointment_time" required />
-            
-            <!-- Dropdown للأوقات -->
-            <div class="dropdown-menu hidden" id="time-dropdown">
-              <div class="scroll-container" id="time-scroll"></div>
-            </div>
-          </div>
-        </div>
+    <div class="booking-form__group half">
+      <label for="appointment_time_display">{timeLabel} <span class="required">*</span></label>
+      <div 
+        class="custom-picker-trigger" 
+        id="time-trigger" 
+        tabindex="0" 
+        role="button"
+      >
+        {timeTriggerDefault}
+      </div>
+      
+      
+      <div class="dropdown-menu hidden" id="time-dropdown">
+        <div class="scroll-container" id="time-scroll"></div>
+      </div>
+    </div>
+  </div>
 
-        <div class="booking-form__group">
-          <label for="reason">{reasonLabel}</label>
-          <textarea id="reason" name="reason" rows="3" maxlength="55" placeholder={reasonPlaceholder}></textarea>
-        </div>
+  <!-- الحقل المخفي الجديد المهم -->
+  <input type="hidden" id="datetime" name="datetime" />
 
-        <div id="message" class="booking-form__message booking-form__message--hidden"
-                 data-success-msg={successMsg} data-error-msg={errorMsg}></div>
-        
-        <button type="submit" class="booking-form__submit">{submitButton}</button>
-    </form>
-   </div>
+  <div class="booking-form__group">
+    <label for="reason">{reasonLabel}</label>
+    <textarea 
+      id="reason" 
+      name="reason" 
+      rows="3" 
+      maxlength="55" 
+      placeholder={reasonPlaceholder}
+    ></textarea>
+  </div>
+
+  <div 
+    id="message" 
+    class="booking-form__message booking-form__message--hidden"
+    data-success-msg={successMsg} 
+    data-error-msg={errorMsg}
+  ></div>
+
+  <button type="submit" class="booking-form__submit">
+    {submitButton}
+  </button>
+</form>
+    </div>
   </section>
 
-<script>
 
-  const EDGE_FUNCTION_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
+<script>
+  // =============================================================
+  // الثوابت والعناصر الأساسية
+  // =============================================================
+  const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
+  const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
   const form = document.getElementById('bookingForm');
   const messageDiv = document.getElementById('message');
@@ -103,135 +157,124 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   const locale = document.documentElement.lang || 'ar';
   const isArabic = locale.startsWith('ar');
 
-  const dateTriggerDefault = isArabic ? 'اختر التاريخ ←' : 'Choose date ←';
-  const timeTriggerDefault = isArabic ? 'اختر الوقت ←' : 'Choose time ←';
-  const selectDateFirstMsg = isArabic ? 'اختر التاريخ أولاً' : 'Select date first';
-  const noTimesAvailableMsg = isArabic ? 'لا توجد مواعيد متاحة' : 'No times available';
+  // نصوص افتراضية متعددة اللغات
+  const t = {
+    dateTriggerDefault:   isArabic ? 'اختر التاريخ ←'      : 'Choose date ←',
+    timeTriggerDefault:   isArabic ? 'اختر الوقت ←'        : 'Choose time ←',
+    selectDateFirst:      isArabic ? 'اختر التاريخ أولاً'  : 'Select date first',
+    noTimesAvailable:     isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
+    noAppointmentsDays:   isArabic ? 'لا توجد مواعيد متاحة في الفترة القادمة' : 'No appointments available in the upcoming days',
+    fetchError:           isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
+    sending:              isArabic ? 'جاري الإرسال...'     : 'Submitting...',
+    missingDateTime:      isArabic ? 'يرجى اختيار التاريخ والوقت' : 'Please select date and time',
+    loadingAppointments:  isArabic ? 'جاري تحميل المواعيد...' : 'Loading appointments...'
+  };
 
-  let offDays = new Set();
+  let selectedDate = '';
+  let selectedTime = '';
+  let dateOriginalText = '';
+  let timeOriginalText = '';
 
-  async function fetchOffDays() {
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ query_type: "off_days" }),
-      });
-
-      if (!response.ok) return;
-      const json = await response.json();
-      if (json.off_days) {
-        offDays = new Set(json.off_days);
-      }
-    } catch (err) {
-      console.error("Failed to load off days", err);
-    }
+  // =============================================================
+  // دوال مساعدة للرسائل والإعادة التعيين
+  // =============================================================
+  function showMessage(text, type = 'info') {
+    messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
+    messageDiv.classList.add(type === 'success' ? 'success' : 'error');
+    messageDiv.textContent = text;
   }
 
-  await fetchOffDays();
+  function hideMessage() {
+    messageDiv.classList.add('booking-form__message--hidden');
+  }
 
-  // ──────────────────────────────────────────────
-  //                 إرسال النموذج
-  // ──────────────────────────────────────────────
+  function resetPickers() {
+    selectedDate = '';
+    selectedTime = '';
+    document.getElementById('date-trigger').textContent = t.dateTriggerDefault;
+    document.getElementById('time-trigger').textContent  = t.timeTriggerDefault;
+    document.getElementById('datetime').value = '';
+    document.querySelectorAll('.scroll-item.selected').forEach(el => el.classList.remove('selected'));
+    document.getElementById('date-dropdown')?.classList.add('hidden');
+    document.getElementById('time-dropdown')?.classList.add('hidden');
+  }
+
+  // =============================================================
+  // إرسال النموذج إلى Edge Function create-appointment
+  // =============================================================
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
-    messageDiv.textContent = isArabic ? 'جاري الإرسال...' : 'Submitting...';
+    hideMessage();
 
-    const formData = new FormData(form);
+    if (!selectedDate || !selectedTime) {
+      showMessage(t.missingDateTime, 'error');
+      return;
+    }
+
+    const payload = {
+      full_name: form.full_name?.value?.trim() || '',
+      email:     form.email?.value?.trim()     || '',
+      phone:     form.phone?.value?.trim()     || '',
+      reason:    form.reason?.value?.trim()    || '',
+      datetime:  `${selectedDate}T${selectedTime}:00`
+    };
+
+    showMessage(t.sending, 'info');
 
     try {
-      const lang = document.documentElement.lang || 'ar';
-      const response = await fetch(`/api/submit-booking?lang=${lang}`, { method: 'POST', body: formData });
-      const result = await response.json();
+      const res = await fetch(CREATE_APPOINTMENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      if (response.ok) {
-        messageDiv.classList.add('success');
-        messageDiv.textContent = result.message || successMsg;
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        showMessage(result.message || successMsg, 'success');
         form.reset();
-
-        document.getElementById('date-trigger').textContent = dateTriggerDefault;
-        document.getElementById('time-trigger').textContent = timeTriggerDefault;
-        document.getElementById('appointment_date').value = '';
-        document.getElementById('appointment_time').value = '';
-
-        document.getElementById('date-dropdown')?.classList.add('hidden');
-        document.getElementById('time-dropdown')?.classList.add('hidden');
+        resetPickers();
       } else {
         throw new Error(result.error || errorMsgBase);
       }
     } catch (err) {
-      messageDiv.classList.add('error');
-      messageDiv.textContent = err.message || errorMsgBase;
+      console.error('خطأ أثناء إرسال الحجز:', err);
+      showMessage(err.message || errorMsgBase, 'error');
     }
   });
 
-  // ──────────────────────────────────────────────
-  //     جلب المواعيد المحجوزة لتاريخ معين
-  // ──────────────────────────────────────────────
-  async function getBookedTimesForDate(dateStr) {
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ date: dateStr }),
-      });
-
-      if (!response.ok) return new Set();
-      const json = await response.json();
-      if (json.error) return new Set();
-      const booked = json.booked || [];
-      return new Set(Array.isArray(booked) ? booked : []);
-    } catch {
-      return new Set();
-    }
-  }
-
-  // ──────────────────────────────────────────────
-  //               التواريخ dropdown – فقط الأيام المتاحة
-  // ──────────────────────────────────────────────
-  const dateTrigger = document.getElementById('date-trigger');
+  // =============================================================
+  // توليد قائمة التواريخ المتاحة
+  // =============================================================
+  const dateTrigger  = document.getElementById('date-trigger');
   const dateDropdown = document.getElementById('date-dropdown');
-  const dateScroll = document.getElementById('date-scroll');
-  const dateHidden = document.getElementById('appointment_date');
+  const dateScroll   = document.getElementById('date-scroll');
 
   async function generateDates() {
-    dateScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
+    dateScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
     try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
+      const res = await fetch(AVAILABILITY_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           query_type: "available_dates_next_days",
-          days: 15  // غيرت إلى 15 يوم كما طلبت
-        }),
+          days: 15
+        })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const json = await response.json();
-      const availableDates = json.available_dates || [];
+      const { available_dates = [] } = await res.json();
 
       dateScroll.innerHTML = '';
 
-      if (availableDates.length === 0) {
-        dateScroll.innerHTML = `<div class="scroll-item disabled">لا توجد مواعيد متاحة في الفترة القادمة</div>`;
+      if (available_dates.length === 0) {
+        dateScroll.innerHTML = `<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
         return;
       }
 
-      for (const dateStr of availableDates) {
+      available_dates.forEach(dateStr => {
         const d = new Date(dateStr);
         const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
         const monthName = d.toLocaleDateString(locale, { month: 'long' });
@@ -247,400 +290,276 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
         item.dataset.value = dateStr;
         item.textContent = display;
         dateScroll.appendChild(item);
-      }
-
-    } catch (err) {
-      console.error("Error loading available dates:", err);
-      dateScroll.innerHTML = `<div class="scroll-item disabled">حدث خطأ أثناء تحميل التواريخ</div>`;
-    }
-  }
-
-  dateScroll.addEventListener('click', (e) => {
-    const item = e.target.closest('.scroll-item');
-    if (!item || item.classList.contains('disabled')) return;
-    dateScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
-    item.classList.add('selected');
-  });
-
-  dateTrigger.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    const isOpen = !dateDropdown.classList.contains('hidden');
-
-    document.getElementById('time-dropdown')?.classList.add('hidden');
-
-    if (isOpen) {
-      dateDropdown.classList.add('hidden');
-    } else {
-      await generateDates();
-      dateDropdown.classList.remove('hidden');
-
-      if (dateHidden.value) {
-        const sel = dateScroll.querySelector(`[data-value="${dateHidden.value}"]`);
-        if (sel) {
-          sel.classList.add('selected');
-          sel.scrollIntoView({ block: 'center', behavior: 'instant' });
-        }
-      }
-    }
-  });
-
-  // ──────────────────────────────────────────────
-  //               الأوقات dropdown – ديناميكي من working_hours
-  // ──────────────────────────────────────────────
-  const timeTrigger = document.getElementById('time-trigger');
-  const timeDropdown = document.getElementById('time-dropdown');
-  const timeScroll = document.getElementById('time-scroll');
-  const timeHidden = document.getElementById('appointment_time');
-
-  async function generateTimes() {
-    timeScroll.innerHTML = '<div class="scroll-item disabled">جاري التحميل...</div>';
-
-    const selectedDate = dateHidden.value;
-    if (!selectedDate) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${selectDateFirstMsg}</div>`;
-      return;
-    }
-
-    // 1. جلب ساعات العمل الديناميكية من working_hours عبر Edge Function
-    let config;
-    try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ 
-          query_type: "working_hours_for_date",
-          date: selectedDate
-        }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      // إعادة تمييز التاريخ المختار إن وُجد
+      if (selectedDate) {
+        const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+        if (el) {
+          dateScroll.querySelectorAll('.scroll-item').forEach(i => i.classList.remove('selected'));
+          el.classList.add('selected');
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
       }
-
-      config = await response.json();
     } catch (err) {
-      console.error("Error loading working hours:", err);
-      timeScroll.innerHTML = `<div class="scroll-item disabled">خطأ في جلب ساعات العمل</div>`;
-      return;
-    }
-
-    if (!config || !config.start_time || !config.end_time) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
-      return;
-    }
-
-    // 2. جلب الحجوزات المحجوزة
-    const booked = await getBookedTimesForDate(selectedDate);
-
-    // 3. حساب الدقائق من start_time و end_time
-    const [startH, startM] = config.start_time.split(':').map(Number);
-    const [endH, endM] = config.end_time.split(':').map(Number);
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    const slotDuration = config.slot_duration_minutes || 15;
-
-    // 4. التحقق من اليوم الحالي (أقرب موعد بعد ساعة)
-    const now = new Date();
-    const selectedDateObj = new Date(selectedDate);
-    const isToday = 
-      selectedDateObj.getFullYear() === now.getFullYear() &&
-      selectedDateObj.getMonth() === now.getMonth() &&
-      selectedDateObj.getDate() === now.getDate();
-
-    let minStartMinutes = startMinutes;
-    if (isToday) {
-      const earliestAllowed = new Date(now.getTime() + 60 * 60 * 1000);  // بعد ساعة
-      let minutes = earliestAllowed.getHours() * 60 + earliestAllowed.getMinutes();
-      const remainder = minutes % slotDuration;
-      if (remainder !== 0) {
-        minutes += slotDuration - remainder;  // تقريب لأعلى إلى أقرب فتحة
-      }
-      minStartMinutes = Math.max(minutes, startMinutes);
-    }
-
-    // 5. توليد الفتحات المتاحة ديناميكيًا
-    let hasAvailable = false;
-    timeScroll.innerHTML = '';
-
-    for (let m = minStartMinutes; m < endMinutes; m += slotDuration) {
-      const hour = Math.floor(m / 60);
-      const minute = m % 60;
-      const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-
-      if (booked.has(time24)) continue;
-
-      hasAvailable = true;
-
-      let display = isArabic
-        ? (hour === 12 ? `12:${minute.toString().padStart(2, '0')} ظهرًا`
-           : hour > 12 ? `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`
-           : `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`)
-        : `${(hour % 12 || 12)}:${minute.toString().padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
-
-      const item = document.createElement('div');
-      item.className = 'scroll-item';
-      item.dataset.value = time24;
-      item.textContent = display;
-      timeScroll.appendChild(item);
-    }
-
-    if (!hasAvailable) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${noTimesAvailableMsg}</div>`;
+      console.error('خطأ تحميل التواريخ:', err);
+      dateScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;;
     }
   }
+
+  dateTrigger.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const willOpen = dateDropdown.classList.contains('hidden');
+  document.getElementById('time-dropdown')?.classList.add('hidden');
+
+  if (!willOpen) {
+    dateDropdown.classList.add('hidden');
+
+    if (dateOriginalText) {
+      dateTrigger.textContent = dateOriginalText;
+    }
+
+  } else {
+
+    dateOriginalText = dateTrigger.textContent;
+    dateTrigger.textContent = t.loadingAppointments;
+
+    await generateDates();
+
+    if (dateOriginalText) {
+      dateTrigger.textContent = dateOriginalText;
+    }
+
+    dateDropdown.classList.remove('hidden');
+
+/* scroll إلى التاريخ المختار */
+if (selectedDate) {
+
+  setTimeout(() => {
+
+    const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'auto',
+        block: 'center'
+      });
+    }
+
+  }, 10);
+
+}
+  }
+});
+
+  dateScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+dateScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+dateTrigger.textContent =
+item.textContent;
+
+selectedDate = item.dataset.value;
+
+dateDropdown.classList.add('hidden');
+
+/* reset الوقت عند تغيير التاريخ */
+selectedTime = '';
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
+
+generateTimes();
+
+});
+
+  // =============================================================
+  // توليد قائمة الأوقات المتاحة
+  // =============================================================
+  const timeTrigger  = document.getElementById('time-trigger');
+  const timeDropdown = document.getElementById('time-dropdown');
+  const timeScroll   = document.getElementById('time-scroll');
+
+  async function generateTimes() {
+    timeScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+
+    if (!selectedDate) {
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(AVAILABILITY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query_type: "available_times_for_date",
+          date: selectedDate
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const { available_times = [] } = await res.json();
+
+      timeScroll.innerHTML = '';
+
+      if (available_times.length === 0) {
+        timeScroll.innerHTML = `<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
+        return;
+      }
+
+      available_times.forEach(time24 => {
+        const [hourStr, minuteStr] = time24.split(':');
+        const hour   = parseInt(hourStr, 10);
+        const minute = parseInt(minuteStr, 10);
+
+        if (isNaN(hour) || isNaN(minute)) return;
+
+        let display;
+        if (isArabic) {
+          if (hour === 12) {
+            display = `12:${minute.toString().padStart(2, '0')} ظهرًا`;
+          } else if (hour > 12) {
+            display = `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`;
+          } else {
+            display = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`;
+          }
+        } else {
+          const h = (hour % 12) || 12;
+          const period = hour < 12 ? 'AM' : 'PM';
+          display = `${h}:${minute.toString().padStart(2, '0')} ${period}`;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'scroll-item';
+        item.dataset.value = time24;
+        item.textContent = display;
+        timeScroll.appendChild(item);
+      });
+
+      // إعادة تمييز الوقت المختار إن وُجد
+      if (selectedTime) {
+        const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+        if (el) {
+          timeScroll.querySelectorAll('.scroll-item').forEach(i => i.classList.remove('selected'));
+          el.classList.add('selected');
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }
+    } catch (err) {
+      console.error('خطأ تحميل الأوقات:', err);
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;
+    }
+  }
+
+  timeTrigger.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const willOpen = timeDropdown.classList.contains('hidden');
+  document.getElementById('date-dropdown')?.classList.add('hidden');
+
+  if (!willOpen) {
+    timeDropdown.classList.add('hidden');
+
+    if (timeOriginalText) {
+      timeTrigger.textContent = timeOriginalText;
+    }
+
+  } else {
+
+    timeOriginalText = timeTrigger.textContent;
+    timeTrigger.textContent = t.loadingAppointments;
+
+    await generateTimes();
+
+    if (timeOriginalText) {
+      timeTrigger.textContent = timeOriginalText;
+    }
+
+timeDropdown.classList.remove('hidden');
+
+/* scroll إلى الوقت المختار */
+if (selectedTime) {
+
+  setTimeout(() => {
+
+    const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'auto',
+        block: 'center'
+      });
+    }
+
+  }, 10);
+
+}
+
+  }
+});
 
   timeScroll.addEventListener('click', (e) => {
     const item = e.target.closest('.scroll-item');
-    if (!item) return;
+    if (!item || item.classList.contains('disabled')) return;
+
     timeScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
     item.classList.add('selected');
+
+    timeTrigger.textContent = item.textContent;
+    selectedTime = item.dataset.value;
+    timeDropdown.classList.add('hidden');
   });
 
-  timeTrigger.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    const isOpen = !timeDropdown.classList.contains('hidden');
+  // =============================================================
+  // إغلاق القوائم عند النقر خارجها
+  // =============================================================
+  document.addEventListener('click', (e) => {
 
-    document.getElementById('date-dropdown')?.classList.add('hidden');
+  if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
+    dateDropdown.classList.add('hidden');
 
-    if (isOpen) {
-      timeDropdown.classList.add('hidden');
-    } else {
-      await generateTimes();
-      timeDropdown.classList.remove('hidden');
-
-      if (timeHidden.value) {
-        const sel = timeScroll.querySelector(`[data-value="${timeHidden.value}"]`);
-        if (sel) {
-          sel.classList.add('selected');
-          sel.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
+    if (dateTrigger.textContent === t.loadingAppointments) {
+      if (selectedDate) {
+        const selectedItem = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+        if (selectedItem) {
+          dateTrigger.textContent = selectedItem.textContent;
         }
+      } else {
+        dateTrigger.textContent = t.dateTriggerDefault;
       }
     }
-  });
+  }
 
-  // اختيار العنصر وإغلاق الـ dropdown
-  [dateScroll, timeScroll].forEach(scroll => {
-    scroll.addEventListener('click', (e) => {
-      const item = e.target.closest('.scroll-item');
-      if (!item || item.classList.contains('disabled')) return;
+  if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
+    timeDropdown.classList.add('hidden');
 
-      const trigger = scroll.id === 'date-scroll' ? dateTrigger : timeTrigger;
-      const hidden = scroll.id === 'date-scroll' ? dateHidden : timeHidden;
-      const dropdown = scroll.id === 'date-scroll' ? dateDropdown : timeDropdown;
-
-      trigger.textContent = item.textContent;
-      hidden.value = item.dataset.value;
-      dropdown.classList.add('hidden');
-    });
-  });
-
-  // إغلاق الـ dropdowns عند الضغط خارجها
-  document.addEventListener('click', (e) => {
-    if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
-      dateDropdown.classList.add('hidden');
+    // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
+    if (timeTrigger.textContent === t.loadingAppointments) {
+      if (selectedTime) {
+        const selectedItem = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+        if (selectedItem) {
+          timeTrigger.textContent = selectedItem.textContent;
+        }
+      } else {
+        timeTrigger.textContent = t.timeTriggerDefault;
+      }
     }
-    if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
-      timeDropdown.classList.add('hidden');
-    }
-  });
+  }
+
+});
 
 </script>
 
-  <style>
-    .booking-form {
-      padding: 4rem 1rem;
-      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .booking-form__container {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      max-width: 480px;
-      width: 100%;
-    }
-
-    .booking-form__title {
-      font-size: 2.1rem;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 2rem;
-      background: linear-gradient(to right, #3b82f6, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .booking-form__form {
-      display: flex;
-      flex-direction: column;
-      gap: 1.6rem;
-    }
-
-    .booking-form__group {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .required { color: #ef4444; font-size: 0.95rem; }
-
-    .under_input{ color: blue; font-size: 0.8rem; }
-
-    input, textarea {
-      padding: 0.85rem 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.6rem;
-      font-size: 1rem;
-      background: #f9fafb;
-    }
-
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-      background: white;
-    }
-
-    textarea { resize: vertical; min-height: 100px; }
-
-    .date-time-row {
-      display: flex;
-      gap: 1.2rem;
-      flex-wrap: wrap;
-    }
-
-    .half { flex: 1; min-width: 140px; }
-
-    .booking-form__submit {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: linear-gradient(90deg, #3b82f6, #6366f1);
-      color: white;
-      border: none;
-      border-radius: 0.6rem;
-      font-size: 1.05rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .booking-form__submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59,130,246,0.25);
-    }
-
-    .booking-form__message {
-      padding: 1rem;
-      border-radius: 0.6rem;
-      text-align: center;
-      font-weight: 500;
-      margin-top: 1rem;
-    }
-
-    .booking-form__message--hidden { display: none; }
-    .success { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
-    .error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
-
-    .custom-picker-trigger {
-      padding: 0.85rem 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.6rem;
-      background: #f9fafb;
-      cursor: pointer;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 1rem;
-      color: #374151;
-      user-select: none;
-    }
-
-    .custom-picker-trigger::after {
-      content: '▼';
-      font-size: 0.9rem;
-      color: #6b7280;
-    }
-
-    .custom-picker-trigger:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      margin-top: 0.5rem;
-      background: white;
-      border: 1px solid #d1d5db;
-      border-radius: 0.6rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-      z-index: 50;
-      max-height: 280px;
-      overflow: hidden;
-    }
-
-    .dropdown-menu.hidden { display: none; }
-
-    .scroll-container {
-      max-height: 260px;
-      overflow-y: auto;
-      scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
-    
-.scroll-item {
-  padding: 1rem 3rem 1rem 1rem;
-  text-align: right;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: #1f2937;
-  position: relative;
-  direction: rtl;
-} 
-
-.scroll-item:hover {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.scroll-item.selected {
-  background: #1d4ed8;
-  color: white;
-  font-weight: 600;
-}
-
-.scroll-item.selected::before {
-  content: "✔";
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.35rem;
-  color: white;
-}
-
-.scroll-item.disabled {
-  color: #9ca3af;
-  cursor: not-allowed;
-  pointer-events: none;
-  font-style: italic;
-}
-
-    @media (max-width: 640px) {
-      .date-time-row { flex-direction: column; gap: 1.4rem; }
-      .half { min-width: 100%; }
-      .booking-form__container { padding: 2rem 1.4rem; }
-    }
-  </style>
   </BaseLayout>
