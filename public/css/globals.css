@@ -212,7 +212,7 @@ right: 1rem;
 @media (max-width: 640px) {  
   .date-time-row { flex-direction: column; gap: 1.4rem; }  
   .half { min-width: 100%; }  
-  .booking-form{padding-top:4rem; padding-bottom: 6rem; }
+  .booking-form{padding-top:1rem; padding-bottom: 5rem; }
   .booking-form__container { padding: 2rem 1.4rem; }
 }  
 
@@ -226,6 +226,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
