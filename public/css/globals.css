@@ -1,4 +1,4 @@
-html, body, .layout__body {
+html, body, .layout__body, .layout__main {
 background: red;
 margin: 0;
 padding: 0;
@@ -142,8 +142,6 @@ min-height: 100vh;
 
   padding: .75rem 1rem;
 
-  border: 1px solid var(--border);
-
   border-radius: var(--radius);
 
   font-size: .95rem;
@@ -181,17 +179,6 @@ min-height: 100vh;
   text-align: start;
 
 }
-
-
-/* إصلاح اتجاه الهاتف 
-
-input[type="tel"] {
-
-  direction: ltr;
-
-  text-align: left;
-
-} */
 
 
 /* ========================================
@@ -240,7 +227,7 @@ input[type="tel"] {
 
   border-radius: var(--radius);
 
-  background: white;
+  background: #f8fafc;
 
   cursor: pointer;
 
@@ -460,4 +447,5 @@ input[type="tel"] {
   }
 
 }
+
 
