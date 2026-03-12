@@ -37,16 +37,14 @@ justify-content: center;
 //  Booking Form Style
 // =============================================================
 
-.booking-form {  
+.booking-form {
+  padding: 4rem 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   min-height: 100vh;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);   
-  display: flex;  
-  align-items: center;  
+  display: flex;
+  align-items: center;
   justify-content: center;
-  width:100%;
-  height:100%;
-}  
+}
 
 .booking-form__container {  
   background: white;  
@@ -235,6 +233,7 @@ right: 1rem;
 
 }
 }
+
 
 
 
