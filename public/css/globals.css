@@ -186,7 +186,7 @@ body {
 
   color: #9ca3af;
 
-  text-align: start;
+  text-align: inherit;
 
 }
 
@@ -455,6 +455,7 @@ body {
   }
 
 }
+
 
 
 
