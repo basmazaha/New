@@ -31,6 +31,13 @@ html, body {
   width: 100%;
 }
 
+
+  // =============================================================
+  //  Navbar Style
+  // =============================================================
+
+
+
   // =============================================================
   //  Booking Form Style
   // =============================================================
@@ -212,8 +219,38 @@ html, body {
     right: 1rem;
   }
     
+  // =============================================================
+  //  Footer Style
+  // =============================================================
+
+    .main-footer {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 3rem 1.5rem 2rem;
+    margin-top: auto;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .footer-container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .copyright {
+    opacity: 0.8;
+    margin-bottom: 0.5rem;
+  }
+
+  .astro {
+    color: #ff3e00;
+    font-weight: bold;
+  }
 
 
+  // =============================================================
+  // Responsive devices
+  // =============================================================
 
     @media (max-width: 640px) {
       .date-time-row { flex-direction: column; gap: 1.4rem; }
@@ -230,6 +267,7 @@ html, body {
         padding-bottom: 6rem;
   }
 }
+
 
 
 
