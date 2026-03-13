@@ -42,7 +42,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={fullNamePlaceholder} 
       maxlength="40" 
       minlength="3"
-      oninvalid="this.setCustomValidity('Please fill out this field')"
+      oninvalid="validateField(this)"
       oninput="this.setCustomValidity('')"
     />
   </div>
@@ -57,6 +57,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={emailPlaceholder} 
       autocomplete="email" 
       maxlength="70"
+      oninvalid="validateField(this)"
+      oninput="this.setCustomValidity('')"
     />
     <div class="text_under_input">
       A confirmation email will be sent to your inbox
@@ -73,9 +75,10 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={phonePlaceholder} 
       autocomplete="tel" 
       inputmode="numeric" 
-      pattern="[0-9+]*" 
+      pattern="[0-9+]{8,20}"
       maxlength="20" 
-      title="Only numbers allowed"
+      oninvalid="validateField(this)"
+      oninput="this.setCustomValidity('')"
     />
   </div>
 
@@ -164,6 +167,10 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     dateTriggerDefault:   isArabic ? 'اختر التاريخ ←'      : 'Choose date ←',
     timeTriggerDefault:   isArabic ? 'اختر الوقت ←'        : 'Choose time ←',
     selectDateFirst:      isArabic ? 'اختر التاريخ أولاً'  : 'Select date first',
+    requiredField:        isArabic ? 'يرجى ملء هذا الحقل' : 'Please fill out this field',
+    invalidEmail:         isArabic ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email address',
+    invalidPhone:         isArabic ? 'رقم الهاتف يجب أن يحتوي على أرقام فقط' : 'Phone number must contain numbers only',
+    nameTooShort:         isArabic ? 'الاسم يجب أن يكون 3 أحرف على الأقل' : 'Name must be at least 3 characters',
     noTimesAvailable:     isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
     noAppointmentsDays:   isArabic ? 'لا توجد مواعيد متاحة في الفترة القادمة' : 'No appointments available in the upcoming days',
     fetchError:           isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
@@ -178,8 +185,37 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   let timeOriginalText = '';
 
   // =============================================================
+  // دالة رسائل ملئ الحقول
+  // =============================================================
+   
+   function validateField(input) {
+
+  if (input.validity.valueMissing) {
+    input.setCustomValidity(t.requiredField);
+    return;
+  }
+
+  if (input.validity.typeMismatch && input.type === "email") {
+    input.setCustomValidity(t.invalidEmail);
+    return;
+  }
+
+  if (input.validity.patternMismatch && input.name === "phone") {
+    input.setCustomValidity(t.invalidPhone);
+    return;
+  }
+
+  if (input.validity.tooShort && input.name === "full_name") {
+    input.setCustomValidity(t.nameTooShort);
+    return;
+  }
+
+}
+
+  // =============================================================
   // دوال مساعدة للرسائل والإعادة التعيين
   // =============================================================
+
   function showMessage(text, type = 'info') {
     messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
     messageDiv.classList.add(type === 'success' ? 'success' : 'error');
