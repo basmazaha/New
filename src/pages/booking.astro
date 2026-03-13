@@ -67,15 +67,15 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       oninvalid="
       if(this.validity.valueMissing){
       this.setCustomValidity('يجب ملء هذا الحقل');
-      } 
-      else if(this.validity.patternMismatch){
+      }
+      else if(this.validity.typeMismatch){
       this.setCustomValidity('يرجى كتابة بريد الكتروني صالح');
       }"
       oninput="this.setCustomValidity('');
       this.checkValidity();"
     />
     <div class="text_under_input">
-      سيتم ارسال رسالة تأكيد الى بريدك الالكتروني
+      A confirmation email will be sent to your inbox
     </div>
   </div>
 
