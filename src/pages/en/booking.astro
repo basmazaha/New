@@ -49,7 +49,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       else if(this.validity.tooShort){
       this.setCustomValidity('Name must be at least 3 characters');
       }"
-      oninput="this.setCustomValidity('')"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
     />
   </div>
 
@@ -70,7 +71,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       else if(this.validity.typeMismatch){
       this.setCustomValidity('Please enter a valid email');
       }"
-      oninput="this.setCustomValidity('')"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
     />
     <div class="text_under_input">
       A confirmation email will be sent to your inbox
@@ -95,7 +97,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       else if(this.validity.patternMismatch){
       this.setCustomValidity('Only numbers are allowed');
       }"
-      oninput="this.setCustomValidity('')"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
     />
   </div>
 
