@@ -276,10 +276,21 @@ const formattedTime = appointment.date_time
 
             const lang = document.documentElement.lang || 'ar';
 
-            const response = await fetch(`/api/cancel?lang=${lang}`, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(
+           "https://toleixbomnteyzqztegs.supabase.co/functions/v1/create-appointment",
+           {
+           method: "POST",
+           headers: {
+          "Content-Type": "application/json",
+          "apikey": "PUBLIC_SUPABASE_ANON_KEY"
+         },
+          body: JSON.stringify({
+          booking_id: cancelButton.dataset.bookingId,
+          token: cancelButton.dataset.token,
+          cancel: true
+         })
+         }
+         );
 
             const result = await response.json();
 
