@@ -95,7 +95,7 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       this.setCustomValidity('Please fill out this field');
       } 
       else if(this.validity.patternMismatch){
-      this.setCustomValidity('Only numbers are allowed');
+      this.setCustomValidity('Please enter a valid phone number');
       }"
       oninput="this.setCustomValidity('');
       this.checkValidity();"
