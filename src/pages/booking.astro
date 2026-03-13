@@ -42,6 +42,15 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={fullNamePlaceholder} 
       maxlength="40" 
       minlength="3"
+      oninvalid="
+      if(this.validity.valueMissing){
+      this.setCustomValidity('يجب ملء هذا الحقل');
+      }
+      else if(this.validity.tooShort){
+      this.setCustomValidity('يجب ألا يقل الاسم عن ٣ حروف');
+      }"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
     />
   </div>
 
@@ -55,6 +64,15 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={emailPlaceholder} 
       autocomplete="email" 
       maxlength="70"
+      oninvalid="
+      if(this.validity.valueMissing){
+      this.setCustomValidity('يجب ملء هذا الحقل');
+      } 
+      else if(this.validity.patternMismatch){
+      this.setCustomValidity('يرجى كتابة بريد الكتروني صالح');
+      }"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
     />
     <div class="text_under_input">
       سيتم ارسال رسالة تأكيد الى بريدك الالكتروني
@@ -71,9 +89,16 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={phonePlaceholder} 
       autocomplete="tel" 
       inputmode="numeric" 
-      pattern="[0-9+]*" 
-      maxlength="20" 
-      title="يرجى كتابة ارقام فقط"
+      pattern
+      oninvalid="[0-9+]{8,20}"
+      if(this.validity.valueMissing){
+      this.setCustomValidity('يجب ملء هذا الحقل');
+      } 
+      else if(this.validity.patternMismatch){
+      this.setCustomValidity('يرجى كتابة رقم هاتف صالح');
+      }"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
     />
   </div>
 
