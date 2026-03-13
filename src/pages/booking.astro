@@ -89,8 +89,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={phonePlaceholder} 
       autocomplete="tel" 
       inputmode="numeric" 
-      pattern
-      oninvalid="[0-9+]{8,20}"
+      pattern="[0-9+]{8,20}"
+      oninvalid="
       if(this.validity.valueMissing){
       this.setCustomValidity('يجب ملء هذا الحقل');
       } 
