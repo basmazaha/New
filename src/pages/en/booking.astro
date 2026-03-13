@@ -42,20 +42,14 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       placeholder={fullNamePlaceholder} 
       maxlength="40" 
       minlength="3"
-      <input
-  type="text"
-  minlength="3"
-  required
-  oninvalid="
-    if(this.validity.valueMissing){
+      oninvalid="
+      if(this.validity.valueMissing){
       this.setCustomValidity('Please fill out this field');
-    }
-    else if(this.validity.tooShort){
+      }
+      else if(this.validity.tooShort){
       this.setCustomValidity('Name must be at least 3 characters');
-    }
-  "
-  oninput="this.setCustomValidity('')"
-/>
+      }"
+      oninput="this.setCustomValidity('')"
     />
   </div>
 
@@ -70,14 +64,13 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       autocomplete="email" 
       maxlength="70"
       oninvalid="
-    if(this.validity.valueMissing){
+      if(this.validity.valueMissing){
       this.setCustomValidity('Please fill out this field');
-    }
-    else if(this.validity.typeMismatch){
+      }
+      else if(this.validity.typeMismatch){
       this.setCustomValidity('Please enter a valid email');
-    }
-  "
-  oninput="this.setCustomValidity('')"
+      }"
+      oninput="this.setCustomValidity('')"
     />
     <div class="text_under_input">
       A confirmation email will be sent to your inbox
@@ -95,14 +88,14 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       autocomplete="tel" 
       inputmode="numeric" 
       pattern="[0-9+]{8,20}"
+      oninvalid="
       if(this.validity.valueMissing){
       this.setCustomValidity('Please fill out this field');
-    } 
-    else if(this.validity.patternMismatch){
+      } 
+      else if(this.validity.patternMismatch){
       this.setCustomValidity('Only numbers are allowed');
-    }
-  "
-  oninput="this.setCustomValidity('')"
+      }"
+      oninput="this.setCustomValidity('')"
     />
   </div>
 
