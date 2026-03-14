@@ -1,459 +1,581 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { useTranslations } from '../i18n/utils';
+import { useTranslations } from '../i18n/utils.ts';
 
-const t = useTranslations(Astro.currentLocale ?? 'ar');
+const tServer = useTranslations(Astro.currentLocale ?? 'ar');
 
-const pageTitle           = t('booking.title');
-const fullNameLabel       = t('booking.full_name');
-const fullNamePlaceholder = t('booking.full_name_placeholder');
-const emailLabel          = t('booking.email');
-const emailPlaceholder    = t('booking.email_placeholder');
-const phoneLabel          = t('booking.phone');
-const phonePlaceholder    = t('booking.phone_placeholder');
-const reasonLabel         = t('booking.reason');
-const reasonPlaceholder   = t('booking.reason_placeholder');
-const dateLabel           = t('booking.date');
-const timeLabel           = t('booking.time');
-const submitButton        = t('buttons.submit');
+const pageTitle           = tServer('booking.title');
+const fullNameLabel       = tServer('booking.full_name');
+const fullNamePlaceholder = tServer('booking.full_name_placeholder');
+const emailLabel          = tServer('booking.email');
+const emailPlaceholder    = tServer('booking.email_placeholder');
+const phoneLabel          = tServer('booking.phone');
+const phonePlaceholder    = tServer('booking.phone_placeholder');
+const reasonLabel         = tServer('booking.reason');
+const reasonPlaceholder   = tServer('booking.reason_placeholder');
+const dateLabel           = tServer('booking.date');
+const timeLabel           = tServer('booking.time');
+const submitButton        = tServer('buttons.submit');
 
-const selectDateFirst     = t('booking.select_date_first');
-const noTimesAvailable    = t('booking.no_times_available');
-const dateTriggerDefault  = t('booking.date_trigger_default');
-const timeTriggerDefault  = t('booking.time_trigger_default');
+const selectDateFirst     = tServer('booking.select_date_first');
+const noTimesAvailable    = tServer('booking.no_times_available');
+const dateTriggerDefault  = tServer('booking.date_trigger_default');
+const timeTriggerDefault  = tServer('booking.time_trigger_default');
 
-const loadingAppointments = t('booking.loading_appointments') || 'Loading appointments...';
-const missingDateTime     = t('booking.missing_datetime') || 'Please select date and time';
-const sendingText         = t('booking.sending') || 'Submitting...';
-const fetchErrorText      = t('booking.fetch_error') || 'Failed to load appointments';
+const noAppointmentsDays  = tServer('booking.noAppointmentsDays') || 'No appointments available in the upcoming days';
+const fetchError          = tServer('booking.fetch_error') || 'Failed to load appointments';
+const sending             = tServer('booking.sending') || 'Submitting...';
+const missingDateTime     = tServer('booking.missing_datetime') || 'Please select date and time';
+const loadingAppointments = tServer('booking.loading_appointments') || 'Loading appointments...';
+
+const success_APPOINTMENT_CREATED = tServer('booking.success_APPOINTMENT_CREATED') || 'Appointment booked successfully';
+const success_APPOINTMENT_RESCHEDULED = tServer('booking.success_APPOINTMENT_RESCHEDULED') || 'Appointment rescheduled successfully';
+const success_APPOINTMENT_CANCELLED = tServer('booking.success_APPOINTMENT_CANCELLED') || 'Appointment cancelled successfully';
+const success_GENERIC_SUCCESS = tServer('booking.success_GENERIC_SUCCESS') || 'Operation completed successfully';
+
+const error_TIME_ALREADY_BOOKED = tServer('booking.error_TIME_ALREADY_BOOKED') || 'This time slot is already booked';
+const error_TIME_NOT_AVAILABLE = tServer('booking.error_TIME_NOT_AVAILABLE') || 'This time is not available';
+const error_PAST_DATE = tServer('booking.error_PAST_DATE') || 'Cannot book a past date';
+const error_INVALID_EMAIL = tServer('booking.error_INVALID_EMAIL') || 'Invalid email address';
+const error_UNKNOWN_ERROR = tServer('booking.error_UNKNOWN_ERROR') || 'Unexpected error occurred';
 ---
 
 <BaseLayout title={pageTitle}>
+  <section class="booking-form">
+    <div class="booking-form__container">
+      <h1 class="booking-form__title">{pageTitle}</h1>
 
-<section class="booking-form">
-<div class="booking-form__container">
+      <form id="bookingForm" class="booking-form__form">
+  <div class="booking-form__group">
+    <label for="full_name">{fullNameLabel} <span class="required">*</span></label>
+    <input 
+      type="text" 
+      id="full_name" 
+      name="full_name" 
+      required 
+      placeholder={fullNamePlaceholder} 
+      maxlength="40" 
+      minlength="3"
+      oninvalid="
+      if(this.validity.valueMissing){
+      this.setCustomValidity('يجب ملء هذا الحقل');
+      }
+      else if(this.validity.tooShort){
+      this.setCustomValidity('يجب ألا يقل الاسم عن ٣ حروف');
+      }"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
+    />
+  </div>
 
-<h1 class="booking-form__title">{pageTitle}</h1>
+  <div class="booking-form__group">
+    <label for="email">{emailLabel} <span class="required">*</span></label>
+    <input 
+      type="email" 
+      id="email" 
+      name="email" 
+      required 
+      placeholder={emailPlaceholder} 
+      autocomplete="email" 
+      maxlength="70"
+      oninvalid="
+      if(this.validity.valueMissing){
+      this.setCustomValidity('يجب ملء هذا الحقل');
+      }
+      else if(this.validity.typeMismatch){
+      this.setCustomValidity('يرجى كتابة بريد الكتروني صالح');
+      }"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
+    />
+    <div class="text_under_input">
+      سيتم ارسال رسالة الى بريدك الالكتروني
+    </div>
+  </div>
 
-<form id="bookingForm" class="booking-form__form">
+  <div class="booking-form__group">
+    <label for="phone">{phoneLabel} <span class="required">*</span></label>
+    <input 
+      type="tel" 
+      id="phone" 
+      name="phone" 
+      required 
+      placeholder={phonePlaceholder} 
+      autocomplete="tel" 
+      inputmode="numeric" 
+      pattern="[0-9+]{8,20}"
+      oninvalid="
+      if(this.validity.valueMissing){
+      this.setCustomValidity('يجب ملء هذا الحقل');
+      } 
+      else if(this.validity.patternMismatch){
+      this.setCustomValidity('يرجى كتابة رقم هاتف صالح');
+      }"
+      oninput="this.setCustomValidity('');
+      this.checkValidity();"
+    />
+  </div>
 
-<div class="booking-form__group">
-<label for="full_name">{fullNameLabel} <span class="required">*</span></label>
+  <div class="booking-form__row date-time-row">
+    <div class="booking-form__group half">
+      <label for="appointment_date_display">{dateLabel} <span class="required">*</span></label>
+      <div 
+        class="custom-picker-trigger" 
+        id="date-trigger" 
+        tabindex="0" 
+        role="button"
+      >
+        {dateTriggerDefault}
+      </div>
+      
+      
+      <div class="dropdown-menu hidden" id="date-dropdown">
+        <div class="scroll-container" id="date-scroll"></div>
+      </div>
+    </div>
 
-<input
-type="text"
-id="full_name"
-name="full_name"
-required
-placeholder={fullNamePlaceholder}
-maxlength="40"
-minlength="3"
-/>
+    <div class="booking-form__group half">
+      <label for="appointment_time_display">{timeLabel} <span class="required">*</span></label>
+      <div 
+        class="custom-picker-trigger" 
+        id="time-trigger" 
+        tabindex="0" 
+        role="button"
+      >
+        {timeTriggerDefault}
+      </div>
+      
+      
+      <div class="dropdown-menu hidden" id="time-dropdown">
+        <div class="scroll-container" id="time-scroll"></div>
+      </div>
+    </div>
+  </div>
 
-</div>
+  <input type="hidden" id="datetime" name="datetime" />
 
-<div class="booking-form__group">
+  <div class="booking-form__group">
+    <label for="reason">{reasonLabel}</label>
+    <textarea 
+      id="reason" 
+      name="reason" 
+      rows="3" 
+      maxlength="55" 
+      placeholder={reasonPlaceholder}
+    ></textarea>
+  </div>
 
-<label for="email">{emailLabel} <span class="required">*</span></label>
+  <div 
+  id="message" 
+  class="booking-form__message booking-form__message--hidden"
+  ></div>
 
-<input
-type="email"
-id="email"
-name="email"
-required
-placeholder={emailPlaceholder}
-autocomplete="email"
-maxlength="70"
-/>
-
-</div>
-
-<div class="booking-form__group">
-
-<label for="phone">{phoneLabel} <span class="required">*</span></label>
-
-<input
-type="tel"
-id="phone"
-name="phone"
-required
-placeholder={phonePlaceholder}
-autocomplete="tel"
-inputmode="numeric"
-pattern="[0-9+]{8,20}"
-/>
-
-</div>
-
-<div class="booking-form__row date-time-row">
-
-<div class="booking-form__group half">
-
-<label>{dateLabel} <span class="required">*</span></label>
-
-<div
-class="custom-picker-trigger"
-id="date-trigger"
-tabindex="0"
-role="button"
->
-{dateTriggerDefault}
-</div>
-
-<div class="dropdown-menu hidden" id="date-dropdown">
-<div class="scroll-container" id="date-scroll"></div>
-</div>
-
-</div>
-
-<div class="booking-form__group half">
-
-<label>{timeLabel} <span class="required">*</span></label>
-
-<div
-class="custom-picker-trigger"
-id="time-trigger"
-tabindex="0"
-role="button"
->
-{timeTriggerDefault}
-</div>
-
-<div class="dropdown-menu hidden" id="time-dropdown">
-<div class="scroll-container" id="time-scroll"></div>
-</div>
-
-</div>
-
-</div>
-
-<input type="hidden" id="datetime" name="datetime"/>
-
-<div class="booking-form__group">
-
-<label for="reason">{reasonLabel}</label>
-
-<textarea
-id="reason"
-name="reason"
-rows="3"
-maxlength="55"
-placeholder={reasonPlaceholder}
-></textarea>
-
-</div>
-
-<div id="message"
-class="booking-form__message booking-form__message--hidden"></div>
-
-<button type="submit" class="booking-form__submit">
-{submitButton}
-</button>
-
+  <button type="submit" class="booking-form__submit">
+    {submitButton}
+  </button>
 </form>
+    </div>
+  </section>
 
-</div>
-</section>
 
 <script define:vars={{
 dateTriggerDefault,
 timeTriggerDefault,
 selectDateFirst,
 noTimesAvailable,
-loadingAppointments,
+noAppointmentsDays,
+fetchError,
+sending,
 missingDateTime,
-sendingText,
-fetchErrorText
+loadingAppointments,
+success_APPOINTMENT_CREATED,
+success_APPOINTMENT_RESCHEDULED,
+success_APPOINTMENT_CANCELLED,
+success_GENERIC_SUCCESS,
+error_TIME_ALREADY_BOOKED,
+error_TIME_NOT_AVAILABLE,
+error_PAST_DATE,
+error_INVALID_EMAIL,
+error_UNKNOWN_ERROR
 }}>
+  // =============================================================
+  // الثوابت والعناصر الأساسية
+  // =============================================================
+  const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
+  const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
-const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
-const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
+  const form = document.getElementById('bookingForm');
+  const messageDiv = document.getElementById('message');
 
-const form = document.getElementById('bookingForm');
-const messageDiv = document.getElementById('message');
+  const locale = document.documentElement.lang || 'ar';
+  const isArabic = locale.startsWith('ar');
 
-let selectedDate = '';
-let selectedTime = '';
+  const t = {
+    dateTriggerDefault,
+    timeTriggerDefault,
+    selectDateFirst,
+    noTimesAvailable,
+    noAppointmentsDays,
+    fetchError,
+    sending,
+    missingDateTime,
+    loadingAppointments,
 
-function showMessage(text,type='info'){
+    success_APPOINTMENT_CREATED,
+    success_APPOINTMENT_RESCHEDULED,
+    success_APPOINTMENT_CANCELLED,
+    success_GENERIC_SUCCESS,
 
-messageDiv.classList.remove('booking-form__message--hidden','success','error');
+    error_TIME_ALREADY_BOOKED,
+    error_TIME_NOT_AVAILABLE,
+    error_PAST_DATE,
+    error_INVALID_EMAIL,
+    error_UNKNOWN_ERROR
+  };
 
-if(type==='success'){
-messageDiv.classList.add('success');
-}else{
-messageDiv.classList.add('error');
+  let selectedDate = '';
+  let selectedTime = '';
+  let dateOriginalText = '';
+  let timeOriginalText = '';
+
+  function showMessage(text, type = 'info') {
+    messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
+    messageDiv.classList.add(type === 'success' ? 'success' : 'error');
+    messageDiv.textContent = text;
+  }
+
+  function hideMessage() {
+    messageDiv.classList.add('booking-form__message--hidden');
+  }
+
+  function resetPickers() {
+    selectedDate = '';
+    selectedTime = '';
+    document.getElementById('date-trigger').textContent = t.dateTriggerDefault;
+    document.getElementById('time-trigger').textContent  = t.timeTriggerDefault;
+    document.getElementById('datetime').value = '';
+    document.querySelectorAll('.scroll-item.selected').forEach(el => el.classList.remove('selected'));
+    document.getElementById('date-dropdown')?.classList.add('hidden');
+    document.getElementById('time-dropdown')?.classList.add('hidden');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessage();
+
+    if (!selectedDate || !selectedTime) {
+      showMessage(t.missingDateTime, 'error');
+      return;
+    }
+
+    const payload = {
+      full_name: form.full_name?.value?.trim() || '',
+      email:     form.email?.value?.trim()     || '',
+      phone:     form.phone?.value?.trim()     || '',
+      reason:    form.reason?.value?.trim()    || '',
+      datetime:  `${selectedDate}T${selectedTime}:00`
+    };
+
+    showMessage(t.sending, 'info');
+
+    try {
+      const res = await fetch(CREATE_APPOINTMENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+
+      const code = result.success_code || 'GENERIC_SUCCESS';
+
+      showMessage(
+       t[`success_${code}`], 'success');
+      form.reset();
+      resetPickers();
+      } else {
+      const code = result.error_code || 'UNKNOWN_ERROR';
+
+      showMessage( t[`error_${code}`],'error');
+      }
+
+    } catch (err) {
+      console.error('خطأ أثناء إرسال الحجز:', err);
+      showMessage(
+      t.error_UNKNOWN_ERROR,'error');
+       }
+   });
+
+  const dateTrigger  = document.getElementById('date-trigger');
+  const dateDropdown = document.getElementById('date-dropdown');
+  const dateScroll   = document.getElementById('date-scroll');
+
+  async function generateDates() {
+    dateScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+
+    try {
+      const res = await fetch(AVAILABILITY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query_type: "available_dates_next_days",
+          days: 15
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const { available_dates = [] } = await res.json();
+
+      dateScroll.innerHTML = '';
+
+      if (available_dates.length === 0) {
+        dateScroll.innerHTML = `<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
+        return;
+      }
+
+      available_dates.forEach(dateStr => {
+        const d = new Date(dateStr);
+        const dayName   = d.toLocaleDateString(locale, { weekday: 'long' });
+        const monthName = d.toLocaleDateString(locale, { month: 'long' });
+        const dayNum    = d.getDate().toString().padStart(2, '0');
+        const year      = d.getFullYear();
+
+        const display = isArabic
+          ? `${dayName} ${dayNum} ${monthName} ${year}`
+          : `${dayName}, ${monthName} ${dayNum}, ${year}`;
+
+        const item = document.createElement('div');
+        item.className = 'scroll-item';
+        item.dataset.value = dateStr;
+        item.textContent = display;
+        dateScroll.appendChild(item);
+      });
+
+      if (selectedDate) {
+        const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+        if (el) {
+          dateScroll.querySelectorAll('.scroll-item').forEach(i => i.classList.remove('selected'));
+          el.classList.add('selected');
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }
+    } catch (err) {
+      console.error('خطأ تحميل التواريخ:', err);
+      dateScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;;
+    }
+  }
+
+  dateTrigger.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const willOpen = dateDropdown.classList.contains('hidden');
+  document.getElementById('time-dropdown')?.classList.add('hidden');
+
+  if (!willOpen) {
+    dateDropdown.classList.add('hidden');
+
+    if (dateOriginalText) {
+      dateTrigger.textContent = dateOriginalText;
+    }
+
+  } else {
+
+    dateOriginalText = dateTrigger.textContent;
+    dateTrigger.textContent = t.loadingAppointments;
+
+    await generateDates();
+
+    if (dateOriginalText) {
+      dateTrigger.textContent = dateOriginalText;
+    }
+
+    dateDropdown.classList.remove('hidden');
+
+if (selectedDate) {
+
+  setTimeout(() => {
+
+    const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'auto',
+        block: 'center'
+      });
+    }
+
+  }, 10);
+
 }
-
-messageDiv.textContent=text;
-
-}
-
-function hideMessage(){
-messageDiv.classList.add('booking-form__message--hidden');
-}
-
-function resetPickers(){
-
-selectedDate='';
-selectedTime='';
-
-document.getElementById('date-trigger').textContent=dateTriggerDefault;
-document.getElementById('time-trigger').textContent=timeTriggerDefault;
-
-document.getElementById('datetime').value='';
-
-}
-
-form.addEventListener('submit',async(e)=>{
-
-e.preventDefault();
-
-hideMessage();
-
-if(!selectedDate || !selectedTime){
-
-showMessage(missingDateTime,'error');
-return;
-
-}
-
-const payload={
-
-full_name:form.full_name.value.trim(),
-email:form.email.value.trim(),
-phone:form.phone.value.trim(),
-reason:form.reason.value.trim(),
-datetime:`${selectedDate}T${selectedTime}:00`
-
-};
-
-showMessage(sendingText,'info');
-
-try{
-
-const res=await fetch(CREATE_APPOINTMENT_URL,{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify(payload)
+  }
 });
 
-const result=await res.json();
+  const timeTrigger  = document.getElementById('time-trigger');
+  const timeDropdown = document.getElementById('time-dropdown');
+  const timeScroll   = document.getElementById('time-scroll');
+
+  async function generateTimes() {
+    timeScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+
+    if (!selectedDate) {
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(AVAILABILITY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query_type: "available_times_for_date",
+          date: selectedDate
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const { available_times = [] } = await res.json();
+
+      timeScroll.innerHTML = '';
+
+      if (available_times.length === 0) {
+        timeScroll.innerHTML = `<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
+        return;
+      }
+
+      available_times.forEach(time24 => {
+        const [hourStr, minuteStr] = time24.split(':');
+        const hour   = parseInt(hourStr, 10);
+        const minute = parseInt(minuteStr, 10);
+
+        if (isNaN(hour) || isNaN(minute)) return;
+
+        let display;
+        if (isArabic) {
+          if (hour === 12) {
+            display = `12:${minute.toString().padStart(2, '0')} ظهرًا`;
+          } else if (hour > 12) {
+            display = `${(hour - 12).toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} مساءً`;
+          } else {
+            display = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} صباحًا`;
+          }
+        } else {
+          const h = (hour % 12) || 12;
+          const period = hour < 12 ? 'AM' : 'PM';
+          display = `${h}:${minute.toString().padStart(2, '0')} ${period}`;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'scroll-item';
+        item.dataset.value = time24;
+        item.textContent = display;
+        timeScroll.appendChild(item);
+      });
+
+      if (selectedTime) {
+        const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+        if (el) {
+          timeScroll.querySelectorAll('.scroll-item').forEach(i => i.classList.remove('selected'));
+          el.classList.add('selected');
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }
+    } catch (err) {
+      console.error('خطأ تحميل الأوقات:', err);
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;
+    }
+  }
+
+  timeTrigger.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const willOpen = timeDropdown.classList.contains('hidden');
+  document.getElementById('date-dropdown')?.classList.add('hidden');
+
+  if (!willOpen) {
+    timeDropdown.classList.add('hidden');
+
+    if (timeOriginalText) {
+      timeTrigger.textContent = timeOriginalText;
+    }
+
+  } else {
+
+    timeOriginalText = timeTrigger.textContent;
+    timeTrigger.textContent = t.loadingAppointments;
+
+    await generateTimes();
+
+    if (timeOriginalText) {
+      timeTrigger.textContent = timeOriginalText;
+    }
 
-if(res.ok && result.success){
-
-showMessage(result.message || 'Success','success');
-
-form.reset();
-resetPickers();
-
-}else{
-
-showMessage(result.message || 'Error','error');
-
-}
-
-}catch(err){
-
-console.error(err);
-showMessage('Unexpected error','error');
-
-}
-
-});
-
-const dateTrigger=document.getElementById('date-trigger');
-const dateDropdown=document.getElementById('date-dropdown');
-const dateScroll=document.getElementById('date-scroll');
-
-async function generateDates(){
-
-dateScroll.innerHTML=`<div class="scroll-item disabled">${loadingAppointments}</div>`;
-
-try{
-
-const res=await fetch(AVAILABILITY_URL,{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:'available_dates_next_days',
-days:15
-})
-});
-
-const data=await res.json();
-
-dateScroll.innerHTML='';
-
-if(!data.available_dates.length){
-
-dateScroll.innerHTML=`<div class="scroll-item disabled">${noTimesAvailable}</div>`;
-return;
-
-}
-
-data.available_dates.forEach(date=>{
-
-const item=document.createElement('div');
-
-item.className='scroll-item';
-item.dataset.value=date;
-item.textContent=date;
-
-dateScroll.appendChild(item);
-
-});
-
-}catch(err){
-
-console.error(err);
-dateScroll.innerHTML=`<div class="scroll-item disabled">${fetchErrorText}</div>`;
-
-}
-
-}
-
-dateTrigger.addEventListener('click',async(e)=>{
-
-e.stopPropagation();
-
-const willOpen=dateDropdown.classList.contains('hidden');
-
-if(!willOpen){
-
-dateDropdown.classList.add('hidden');
-
-}else{
-
-await generateDates();
-dateDropdown.classList.remove('hidden');
-
-}
-
-});
-
-dateScroll.addEventListener('click',(e)=>{
-
-const item=e.target.closest('.scroll-item');
-
-if(!item)return;
-
-dateScroll.querySelectorAll('.scroll-item').forEach(el=>el.classList.remove('selected'));
-
-item.classList.add('selected');
-
-selectedDate=item.dataset.value;
-
-dateTrigger.textContent=item.textContent;
-
-dateDropdown.classList.add('hidden');
-
-});
-
-const timeTrigger=document.getElementById('time-trigger');
-const timeDropdown=document.getElementById('time-dropdown');
-const timeScroll=document.getElementById('time-scroll');
-
-async function generateTimes(){
-
-timeScroll.innerHTML=`<div class="scroll-item disabled">${loadingAppointments}</div>`;
-
-if(!selectedDate){
-
-timeScroll.innerHTML=`<div class="scroll-item disabled">${selectDateFirst}</div>`;
-return;
-
-}
-
-try{
-
-const res=await fetch(AVAILABILITY_URL,{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-query_type:'available_times_for_date',
-date:selectedDate
-})
-});
-
-const data=await res.json();
-
-timeScroll.innerHTML='';
-
-if(!data.available_times.length){
-
-timeScroll.innerHTML=`<div class="scroll-item disabled">${noTimesAvailable}</div>`;
-return;
-
-}
-
-data.available_times.forEach(time=>{
-
-const item=document.createElement('div');
-
-item.className='scroll-item';
-item.dataset.value=time;
-item.textContent=time;
-
-timeScroll.appendChild(item);
-
-});
-
-}catch(err){
-
-console.error(err);
-timeScroll.innerHTML=`<div class="scroll-item disabled">${fetchErrorText}</div>`;
-
-}
-
-}
-
-timeTrigger.addEventListener('click',async(e)=>{
-
-e.stopPropagation();
-
-const willOpen=timeDropdown.classList.contains('hidden');
-
-if(!willOpen){
-
-timeDropdown.classList.add('hidden');
-
-}else{
-
-await generateTimes();
 timeDropdown.classList.remove('hidden');
 
+if (selectedTime) {
+
+  setTimeout(() => {
+
+    const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'auto',
+        block: 'center'
+      });
+    }
+
+  }, 10);
+
 }
 
+  }
 });
 
-timeScroll.addEventListener('click',(e)=>{
+  timeScroll.addEventListener('click', (e) => {
+    const item = e.target.closest('.scroll-item');
+    if (!item || item.classList.contains('disabled')) return;
 
-const item=e.target.closest('.scroll-item');
+    timeScroll.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('selected'));
+    item.classList.add('selected');
 
-if(!item)return;
+    timeTrigger.textContent = item.textContent;
+    selectedTime = item.dataset.value;
+    timeDropdown.classList.add('hidden');
+  });
 
-timeScroll.querySelectorAll('.scroll-item').forEach(el=>el.classList.remove('selected'));
+  document.addEventListener('click', (e) => {
 
-item.classList.add('selected');
+  if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
+    dateDropdown.classList.add('hidden');
 
-selectedTime=item.dataset.value;
+    if (dateTrigger.textContent === t.loadingAppointments) {
+      if (selectedDate) {
+        const selectedItem = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
+        if (selectedItem) {
+          dateTrigger.textContent = selectedItem.textContent;
+        }
+      } else {
+        dateTrigger.textContent = t.dateTriggerDefault;
+      }
+    }
+  }
 
-timeTrigger.textContent=item.textContent;
+  if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
+    timeDropdown.classList.add('hidden');
 
-timeDropdown.classList.add('hidden');
-
-});
-
-document.addEventListener('click',(e)=>{
-
-if(!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)){
-dateDropdown.classList.add('hidden');
-}
-
-if(!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)){
-timeDropdown.classList.add('hidden');
-}
+    if (timeTrigger.textContent === t.loadingAppointments) {
+      if (selectedTime) {
+        const selectedItem = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
+        if (selectedItem) {
+          timeTrigger.textContent = selectedItem.textContent;
+        }
+      } else {
+        timeTrigger.textContent = t.timeTriggerDefault;
+      }
+    }
+  }
 
 });
 
