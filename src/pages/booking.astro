@@ -2,42 +2,42 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { useTranslations } from '../i18n/utils.ts';
 
-const tServer = useTranslations(Astro.currentLocale ?? 'ar');
+const t = useTranslations(Astro.currentLocale ?? 'ar');
 
-const pageTitle           = tServer('booking.title');
-const fullNameLabel       = tServer('booking.full_name');
-const fullNamePlaceholder = tServer('booking.full_name_placeholder');
-const emailLabel          = tServer('booking.email');
-const emailPlaceholder    = tServer('booking.email_placeholder');
-const phoneLabel          = tServer('booking.phone');
-const phonePlaceholder    = tServer('booking.phone_placeholder');
-const reasonLabel         = tServer('booking.reason');
-const reasonPlaceholder   = tServer('booking.reason_placeholder');
-const dateLabel           = tServer('booking.date');
-const timeLabel           = tServer('booking.time');
-const submitButton        = tServer('buttons.submit');
+const pageTitle           = t('booking.title');
+const fullNameLabel       = t('booking.full_name');
+const fullNamePlaceholder = t('booking.full_name_placeholder');
+const emailLabel          = t('booking.email');
+const emailPlaceholder    = t('booking.email_placeholder');
+const phoneLabel          = t('booking.phone');
+const phonePlaceholder    = t('booking.phone_placeholder');
+const reasonLabel         = t('booking.reason');
+const reasonPlaceholder   = t('booking.reason_placeholder');
+const dateLabel           = t('booking.date');
+const timeLabel           = t('booking.time');
+const submitButton        = t('buttons.submit');
 
-const selectDateFirst     = tServer('booking.select_date_first');
-const noTimesAvailable    = tServer('booking.no_times_available');
-const dateTriggerDefault  = tServer('booking.date_trigger_default');
-const timeTriggerDefault  = tServer('booking.time_trigger_default');
+const selectDateFirst     = t('booking.select_date_first');
+const noTimesAvailable    = t('booking.no_times_available');
+const dateTriggerDefault  = t('booking.date_trigger_default');
+const timeTriggerDefault  = t('booking.time_trigger_default');
 
-const noAppointmentsDays  = tServer('booking.noAppointmentsDays') || 'No appointments available in the upcoming days';
-const fetchError          = tServer('booking.fetch_error') || 'Failed to load appointments';
-const sending             = tServer('booking.sending') || 'Submitting...';
-const missingDateTime     = tServer('booking.missing_datetime') || 'Please select date and time';
-const loadingAppointments = tServer('booking.loading_appointments') || 'Loading appointments...';
+const noAppointmentsDays  = t('booking.noAppointmentsDays');
+const fetchError          = t('booking.fetch_error');
+const sending             = t('booking.sending');
+const missingDateTime     = t('booking.missing_datetime');
+const loadingAppointments = t('booking.loading_appointments');
 
-const success_APPOINTMENT_CREATED = tServer('booking.success_APPOINTMENT_CREATED') || 'Appointment booked successfully';
-const success_APPOINTMENT_RESCHEDULED = tServer('booking.success_APPOINTMENT_RESCHEDULED') || 'Appointment rescheduled successfully';
-const success_APPOINTMENT_CANCELLED = tServer('booking.success_APPOINTMENT_CANCELLED') || 'Appointment cancelled successfully';
-const success_GENERIC_SUCCESS = tServer('booking.success_GENERIC_SUCCESS') || 'Operation completed successfully';
+const success_APPOINTMENT_CREATED = t('booking.success_APPOINTMENT_CREATED');
+const success_APPOINTMENT_RESCHEDULED = t('booking.success_APPOINTMENT_RESCHEDULED');
+const success_APPOINTMENT_CANCELLED = t('booking.success_APPOINTMENT_CANCELLED');
+const success_GENERIC_SUCCESS = t('booking.success_GENERIC_SUCCESS');
 
-const error_TIME_ALREADY_BOOKED = tServer('booking.error_TIME_ALREADY_BOOKED') || 'This time slot is already booked';
-const error_TIME_NOT_AVAILABLE = tServer('booking.error_TIME_NOT_AVAILABLE') || 'This time is not available';
-const error_PAST_DATE = tServer('booking.error_PAST_DATE') || 'Cannot book a past date';
-const error_INVALID_EMAIL = tServer('booking.error_INVALID_EMAIL') || 'Invalid email address';
-const error_UNKNOWN_ERROR = tServer('booking.error_UNKNOWN_ERROR') || 'Unexpected error occurred';
+const error_TIME_ALREADY_BOOKED = t('booking.error_TIME_ALREADY_BOOKED');
+const error_TIME_NOT_AVAILABLE = t('booking.error_TIME_NOT_AVAILABLE');
+const error_PAST_DATE = t('booking.error_PAST_DATE');
+const error_INVALID_EMAIL = t('booking.error_INVALID_EMAIL');
+const error_UNKNOWN_ERROR = t('booking.error_UNKNOWN_ERROR');
 ---
 
 <BaseLayout title={pageTitle}>
@@ -127,8 +127,7 @@ const error_UNKNOWN_ERROR = tServer('booking.error_UNKNOWN_ERROR') || 'Unexpecte
       >
         {dateTriggerDefault}
       </div>
-      
-      
+
       <div class="dropdown-menu hidden" id="date-dropdown">
         <div class="scroll-container" id="date-scroll"></div>
       </div>
@@ -144,8 +143,7 @@ const error_UNKNOWN_ERROR = tServer('booking.error_UNKNOWN_ERROR') || 'Unexpecte
       >
         {timeTriggerDefault}
       </div>
-      
-      
+
       <div class="dropdown-menu hidden" id="time-dropdown">
         <div class="scroll-container" id="time-scroll"></div>
       </div>
@@ -177,7 +175,6 @@ const error_UNKNOWN_ERROR = tServer('booking.error_UNKNOWN_ERROR') || 'Unexpecte
     </div>
   </section>
 
-
 <script define:vars={{
 dateTriggerDefault,
 timeTriggerDefault,
@@ -198,9 +195,7 @@ error_PAST_DATE,
 error_INVALID_EMAIL,
 error_UNKNOWN_ERROR
 }}>
-  // =============================================================
-  // الثوابت والعناصر الأساسية
-  // =============================================================
+
   const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
   const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
 
@@ -238,6 +233,9 @@ error_UNKNOWN_ERROR
   let dateOriginalText = '';
   let timeOriginalText = '';
 
+  // =============================================================
+  // دوال مساعدة للرسائل والإعادة التعيين
+  // =============================================================
   function showMessage(text, type = 'info') {
     messageDiv.classList.remove('booking-form__message--hidden', 'success', 'error');
     messageDiv.classList.add(type === 'success' ? 'success' : 'error');
@@ -259,6 +257,9 @@ error_UNKNOWN_ERROR
     document.getElementById('time-dropdown')?.classList.add('hidden');
   }
 
+  // =============================================================
+  // إرسال النموذج إلى Edge Function create-appointment
+  // =============================================================
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideMessage();
@@ -308,6 +309,9 @@ error_UNKNOWN_ERROR
        }
    });
 
+  // =============================================================
+  // توليد قائمة التواريخ المتاحة
+  // =============================================================
   const dateTrigger  = document.getElementById('date-trigger');
   const dateDropdown = document.getElementById('date-dropdown');
   const dateScroll   = document.getElementById('date-scroll');
@@ -354,6 +358,7 @@ error_UNKNOWN_ERROR
         dateScroll.appendChild(item);
       });
 
+      // إعادة تمييز التاريخ المختار إن وُجد
       if (selectedDate) {
         const el = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
         if (el) {
@@ -393,6 +398,7 @@ error_UNKNOWN_ERROR
 
     dateDropdown.classList.remove('hidden');
 
+/* scroll إلى التاريخ المختار */
 if (selectedDate) {
 
   setTimeout(() => {
@@ -412,6 +418,40 @@ if (selectedDate) {
   }
 });
 
+  dateScroll.addEventListener('click', (e) => {
+
+const item =
+e.target.closest('.scroll-item');
+
+if (!item ||
+item.classList.contains('disabled'))
+return;
+
+dateScroll
+.querySelectorAll('.scroll-item')
+.forEach(el => el.classList.remove('selected'));
+
+item.classList.add('selected');
+
+dateTrigger.textContent =
+item.textContent;
+
+selectedDate = item.dataset.value;
+
+dateDropdown.classList.add('hidden');
+
+/* reset الوقت عند تغيير التاريخ */
+selectedTime = '';
+document.getElementById('time-trigger').textContent =
+t.timeTriggerDefault;
+
+generateTimes();
+
+});
+
+  // =============================================================
+  // توليد قائمة الأوقات المتاحة
+  // =============================================================
   const timeTrigger  = document.getElementById('time-trigger');
   const timeDropdown = document.getElementById('time-dropdown');
   const timeScroll   = document.getElementById('time-scroll');
@@ -474,6 +514,7 @@ if (selectedDate) {
         timeScroll.appendChild(item);
       });
 
+      // إعادة تمييز الوقت المختار إن وُجد
       if (selectedTime) {
         const el = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
         if (el) {
@@ -513,6 +554,7 @@ if (selectedDate) {
 
 timeDropdown.classList.remove('hidden');
 
+/* scroll إلى الوقت المختار */
 if (selectedTime) {
 
   setTimeout(() => {
@@ -545,11 +587,15 @@ if (selectedTime) {
     timeDropdown.classList.add('hidden');
   });
 
+  // =============================================================
+  // إغلاق القوائم عند النقر خارجها
+  // =============================================================
   document.addEventListener('click', (e) => {
 
   if (!dateTrigger.contains(e.target) && !dateDropdown.contains(e.target)) {
     dateDropdown.classList.add('hidden');
 
+    // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
     if (dateTrigger.textContent === t.loadingAppointments) {
       if (selectedDate) {
         const selectedItem = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
@@ -565,6 +611,7 @@ if (selectedTime) {
   if (!timeTrigger.contains(e.target) && !timeDropdown.contains(e.target)) {
     timeDropdown.classList.add('hidden');
 
+    // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
     if (timeTrigger.textContent === t.loadingAppointments) {
       if (selectedTime) {
         const selectedItem = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
@@ -581,4 +628,4 @@ if (selectedTime) {
 
 </script>
 
-</BaseLayout>
+  </BaseLayout>
