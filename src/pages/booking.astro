@@ -16,8 +16,6 @@ const reasonPlaceholder   = t('booking.reason_placeholder');
 const dateLabel           = t('booking.date');
 const timeLabel           = t('booking.time');
 const submitButton        = t('buttons.submit');
-const successMsg          = t('booking.success_message');
-const errorMsg            = t('booking.error_message');
 
 
 const selectDateFirst     = t('booking.select_date_first');
@@ -153,10 +151,8 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
   </div>
 
   <div 
-    id="message" 
-    class="booking-form__message booking-form__message--hidden"
-    data-success-msg={successMsg} 
-    data-error-msg={errorMsg}
+  id="message" 
+  class="booking-form__message booking-form__message--hidden"
   ></div>
 
   <button type="submit" class="booking-form__submit">
@@ -176,8 +172,6 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   const form = document.getElementById('bookingForm');
   const messageDiv = document.getElementById('message');
-  const successMsg = messageDiv.dataset.successMsg;
-  const errorMsgBase = messageDiv.dataset.errorMsg;
 
   const locale = document.documentElement.lang || 'ar';
   const isArabic = locale.startsWith('ar');
@@ -192,7 +186,50 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
     fetchError:           isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
     sending:              isArabic ? 'جاري الإرسال...'     : 'Submitting...',
     missingDateTime:      isArabic ? 'يرجى اختيار التاريخ والوقت' : 'Please select date and time',
-    loadingAppointments:  isArabic ? 'جاري تحميل المواعيد...' : 'Loading appointments...'
+    loadingAppointments:  isArabic ? 'جاري تحميل المواعيد...' : 'Loading appointments...',
+// ==========================
+// success messages
+// ==========================
+
+success_APPOINTMENT_CREATED: isArabic
+  ? 'تم حجز الموعد بنجاح'
+  : 'Appointment booked successfully',
+
+success_APPOINTMENT_RESCHEDULED: isArabic
+  ? 'تمت إعادة جدولة الموعد بنجاح'
+  : 'Appointment rescheduled successfully',
+
+success_APPOINTMENT_CANCELLED: isArabic
+  ? 'تم إلغاء الموعد بنجاح'
+  : 'Appointment cancelled successfully',
+
+success_GENERIC_SUCCESS: isArabic
+  ? 'تمت العملية بنجاح'
+  : 'Operation completed successfully',
+
+// ==========================
+// error messages
+// ==========================
+
+error_TIME_ALREADY_BOOKED: isArabic
+  ? 'هذا الموعد محجوز بالفعل'
+  : 'This time slot is already booked',
+
+error_TIME_NOT_AVAILABLE: isArabic
+  ? 'هذا الوقت غير متاح'
+  : 'This time is not available',
+
+error_PAST_DATE: isArabic
+  ? 'لا يمكن حجز موعد في الماضي'
+  : 'Cannot book a past date',
+
+error_INVALID_EMAIL: isArabic
+  ? 'البريد الإلكتروني غير صالح'
+  : 'Invalid email address',
+
+error_UNKNOWN_ERROR: isArabic
+  ? 'حدث خطأ غير متوقع'
+  : 'Unexpected error occurred',
   };
 
   let selectedDate = '';
@@ -256,17 +293,25 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
       const result = await res.json();
 
       if (res.ok && result.success) {
-        showMessage(result.message || successMsg, 'success');
-        form.reset();
-        resetPickers();
+
+      const code = result.success_code || 'GENERIC_SUCCESS';
+
+      showMessage(
+       t[`success_${code}`], 'success');
+      form.reset();
+      resetPickers();
       } else {
-        throw new Error(result.error || errorMsgBase);
+      const code = result.error_code || 'UNKNOWN_ERROR';
+
+      showMessage( t[`error_${code}`],'error');
       }
+
     } catch (err) {
       console.error('خطأ أثناء إرسال الحجز:', err);
-      showMessage(err.message || errorMsgBase, 'error');
-    }
-  });
+      showMessage(
+      t.error_UNKNOWN_ERROR,'error');
+       }
+   });
 
   // =============================================================
   // توليد قائمة التواريخ المتاحة
