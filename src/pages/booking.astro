@@ -202,7 +202,7 @@ error_UNKNOWN_ERROR
   const form = document.getElementById('bookingForm');
   const messageDiv = document.getElementById('message');
 
-  const locale = document.documentElement.lang || 'ar';
+  const locale = document.documentElement.lang?.startsWith('ar') ? 'ar-EG' : 'en-US';
   const isArabic = locale.startsWith('ar');
 
   const t = {
