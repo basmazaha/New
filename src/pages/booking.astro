@@ -178,15 +178,58 @@ const timeTriggerDefault  = t('booking.time_trigger_default');
 
   // نصوص افتراضية متعددة اللغات
   const t = {
-    dateTriggerDefault:   isArabic ? 'اختر التاريخ ←'      : 'Choose date ←',
-    timeTriggerDefault:   isArabic ? 'اختر الوقت ←'        : 'Choose time ←',
-    selectDateFirst:      isArabic ? 'اختر التاريخ أولاً'  : 'Select date first',
-    noTimesAvailable:     isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
-    noAppointmentsDays:   isArabic ? 'لا توجد مواعيد متاحة في الفترة القادمة' : 'No appointments available in the upcoming days',
-    fetchError:           isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
-    sending:              isArabic ? 'جاري الإرسال...'     : 'Submitting...',
-    missingDateTime:      isArabic ? 'يرجى اختيار التاريخ والوقت' : 'Please select date and time',
-    loadingAppointments:  isArabic ? 'جاري تحميل المواعيد...' : 'Loading appointments...',
+    dateTriggerDefault:   isArabic ? 'اخترر التاريخ ←'      : 'Choose date ←',
+    timeTriggerDefault:   isArabic ? 'اخترر الوقت ←'        : 'Choose time ←',
+    selectDateFirst:      isArabic ? 'اخترر التاريخ أولاً'  : 'Select date first',
+    noTimesAvailable:     isArabic ? 'لا توجد موااعيد متاحة' : 'No times available',
+    noAppointmentsDays:   isArabic ? 'لا توجد موااعيد متاحة في الفترة القادمة' : 'No appointments available in the upcoming days',
+    fetchError:           isArabic ? 'خطأ في جلب الموااعيد' : 'Failed to load appointments',
+    sending:              isArabic ? 'جااري الإرسال...'     : 'Submitting...',
+    missingDateTime:      isArabic ? 'يرجى اختياار التاريخ والوقت' : 'Please select date and time',
+    loadingAppointments:  isArabic ? 'جاري تحميل الموااعيد...' : 'Loading appointments...',
+// ==========================
+// success messages
+// ==========================
+
+success_APPOINTMENT_CREATED: isArabic
+  ? 'تم حجز الموعد بنجااح'
+  : 'Appointment booked successfully',
+
+success_APPOINTMENT_RESCHEDULED: isArabic
+  ? 'تمت إعادة جدولة الموعد بنجااح'
+  : 'Appointment rescheduled successfully',
+
+success_APPOINTMENT_CANCELLED: isArabic
+  ? 'تم إلغاء الموعد بنجااح'
+  : 'Appointment cancelled successfully',
+
+success_GENERIC_SUCCESS: isArabic
+  ? 'تمت العملية بنجااح'
+  : 'Operation completed successfully',
+
+// ==========================
+// error messages
+// ==========================
+
+error_TIME_ALREADY_BOOKED: isArabic
+  ? 'هذا الموعد محجوز بالفعل'
+  : 'This time slot is already booked',
+
+error_TIME_NOT_AVAILABLE: isArabic
+  ? 'هذا الوقت غير متاح'
+  : 'This time is not available',
+
+error_PAST_DATE: isArabic
+  ? 'لا يمكن حجز موعد في الماضي'
+  : 'Cannot book a past date',
+
+error_INVALID_EMAIL: isArabic
+  ? 'البريد الإلكتروني غير صالح'
+  : 'Invalid email address',
+
+error_UNKNOWN_ERROR: isArabic
+  ? 'حدث خطأ غير متوقع'
+  : 'Unexpected error occurred',
     };
 
   let selectedDate = '';
