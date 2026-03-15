@@ -195,6 +195,9 @@ error_PAST_DATE,
 error_INVALID_EMAIL,
 error_UNKNOWN_ERROR
 }}>
+document.addEventListener('DOMContentLoaded', () => {
+
+console.log("BOOKING SCRIPT STARTED");
 
   const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
   const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
@@ -625,7 +628,7 @@ if (selectedTime) {
   }
 
 });
-
+});
 </script>
 
   </BaseLayout>
