@@ -4,6 +4,7 @@ import { useTranslations } from '../i18n/utils.ts';
 
 const t = useTranslations(Astro.currentLocale ?? 'ar');
 
+const SUPABASE_URL        = import.meta.env.PUBLIC_SUPABASE_URL;
 const pageTitle           = t('booking.title');
 const fullNameLabel       = t('booking.full_name');
 const fullNamePlaceholder = t('booking.full_name_placeholder');
@@ -176,6 +177,7 @@ const error_UNKNOWN_ERROR = t('booking.errors.UNKNOWN_ERROR');
   </section>
 
 <script define:vars={{
+SUPABASE_URL,
 dateTriggerDefault,
 timeTriggerDefault,
 selectDateFirst,
@@ -199,8 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log("BOOKING SCRIPT STARTED");
 
-  const CREATE_APPOINTMENT_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
-  const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
+  const CREATE_APPOINTMENT_URL = `${SUPABASE_URL}/functions/v1/create-appointment`;
+  const AVAILABILITY_URL = `${SUPABASE_URL}/functions/v1/check-booked-times`;
 
   const form = document.getElementById('bookingForm');
   const messageDiv = document.getElementById('message');
