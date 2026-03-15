@@ -298,13 +298,13 @@ error_UNKNOWN_ERROR
       const code = result.success_code || 'GENERIC_SUCCESS';
 
       showMessage(
-       t[`success_${code}`], 'success');
+       i18n[`success_${code}`], 'success');
       form.reset();
       resetPickers();
       } else {
       const code = result.error_code || 'UNKNOWN_ERROR';
 
-      showMessage( t[`error_${code}`],'error');
+      showMessage( i18n[`error_${code}`],'error');
       }
 
     } catch (err) {
@@ -463,7 +463,7 @@ dateDropdown.classList.add('hidden');
 /* reset الوقت عند تغيير التاريخ */
 selectedTime = '';
 document.getElementById('time-trigger').textContent =
-t.timeTriggerDefault;
+i18n.timeTriggerDefault;
 
 generateTimes();
 
