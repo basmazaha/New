@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useTranslations } from '../i18n/utils.ts';
+
+const t = useTranslations(Astro.currentLocale ?? 'ar');
+
+const title = t('booking.title');
+const buttonText = t('buttons.submit');
+const successMessage = t('booking.success.APPOINTMENT_CREATED');
+const errorMessage = t('booking.errors.UNKNOWN_ERROR');
+---
+
+<BaseLayout title="Test i18n">
+
+<h1>اختبار الترجمة</h1>
+
+<p id="title">{title}</p>
+
+<button id="testBtn">{buttonText}</button>
+
+<div id="msg"></div>
+
+<script define:vars={{
+  successMessage,
+  errorMessage
+}}>
+
+console.log("script loaded");
+
+const btn = document.getElementById('testBtn');
+const msg = document.getElementById('msg');
+
+btn.addEventListener('click', () => {
+
+  console.log("button clicked");
+
+  const random = Math.random();
+
+  if(random > 0.5){
+    msg.textContent = successMessage;
+    msg.style.color = "green";
+  } else {
+    msg.textContent = errorMessage;
+    msg.style.color = "red";
+  }
+
+});
+
+</script>
+
+</BaseLayout>
