@@ -614,7 +614,7 @@ function json(data: any, status = 200) {
 // supabase/functions/send-booking-confirmation-brevo/index.ts
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const APP_BASE_URL = (Deno.env.get("APP_BASE_URL") || "https://new-91v.pages.dev").replace(/\/+$/, "");
+const APP_BASE_URL = (Deno.env.get("APP_BASE_URL") || "https://new-91v.pages.dev").replace(/\/+$/, "");       //تعديل
 
 if (!BREVO_API_KEY) {
   console.error("Missing BREVO_API_KEY env var");
@@ -805,7 +805,7 @@ Deno.serve(async (req: Request) => {
 // ────────────────────────────────────────────────────────────────
 
 const BREVO_API_KEY   = Deno.env.get("BREVO_API_KEY");
-const APP_BASE_URL    = (Deno.env.get("APP_BASE_URL") || "https://new-91v.pages.dev/").replace(/\/+$/, "");
+const APP_BASE_URL    = (Deno.env.get("APP_BASE_URL") || "https://new-91v.pages.dev/").replace(/\/+$/, "");    // تعديل
 const REMINDER_SECRET = Deno.env.get("REMINDER_SECRET");
 
 if (!BREVO_API_KEY || !REMINDER_SECRET) {
@@ -1144,6 +1144,21 @@ and email is not null
 and status in ('confirmed','rescheduled');
 
 
+
+// Cron job for reminder emails
+
+select
+cron.schedule(
+'send-reminders',
+'0 * * * *',
+$$
+select
+net.http_post(
+url:='https://your-project.functions.supabase.co/send-appointment-reminders',      // تعديل
+headers:='{"x-reminder-secret":"write REMINDER-SECRET value"}'::jsonb       //تعديل
+);
+$$
+);
 
 
 
