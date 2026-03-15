@@ -42,6 +42,14 @@ export const translations = {
       description: 'احصل على آخر الأخبار والعروض مباشرة في بريدك الإلكترونى'
     },
 
+    validation: {
+       required: "يجب ملء هذا الحقل",
+       name_short: "يجب ألا يقل الاسم عن ٣ حروف",
+       email_invalid: "يرجى كتابة بريد الكتروني صالح",
+       phone_invalid: "يرجى كتابة رقم هاتف صالح",
+       email_notice: "سيتم ارسال رسالة الى بريدك الالكتروني"
+    },
+    
     booking: {
 
       title: 'حجز موعد',
