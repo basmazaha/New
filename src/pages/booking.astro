@@ -200,6 +200,8 @@ error_UNKNOWN_ERROR
 
   const CREATE_APPOINTMENT_URL = `${SUPABASE_URL}/functions/v1/create-appointment`;
   const AVAILABILITY_URL = `${SUPABASE_URL}/functions/v1/check-booked-times`;
+ 
+  let availableDatesCache = null;
 
   const form = document.getElementById('bookingForm');
   const messageDiv = document.getElementById('message');
@@ -322,18 +324,34 @@ error_UNKNOWN_ERROR
     dateScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
 
     try {
-      const res = await fetch(AVAILABILITY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query_type: "available_dates_next_days",
-          days: 15
-        })
-      });
+      let available_dates = [];
+
+if (availableDatesCache) {
+
+  available_dates = availableDatesCache;
+
+} else {
+
+  const res = await fetch(AVAILABILITY_URL,{
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query_type: "available_dates_next_days",
+      days: 15
+    })
+  });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const data = await res.json();
+
+  available_dates = data.available_dates || [];
+
+  availableDatesCache = available_dates;
+
+}
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const { available_dates = [] } = await res.json();
 
       dateScroll.innerHTML = '';
 
