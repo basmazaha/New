@@ -62,7 +62,7 @@ const error_UNKNOWN_ERROR = t('booking.errors.UNKNOWN_ERROR');
       maxlength="40" 
       minlength="3"
       oninvalid="handleValidation(this)"
-      oninput="this.setCustomValidity('')"
+      oninput="clearValidation(this)"
     />
   </div>
 
@@ -275,6 +275,11 @@ validationNameShort
   }
 
 }
+
+   window.clearValidation = function(input){
+   input.setCustomValidity('');
+   input.checkValidity();
+};
 
   // =============================================================
   // إرسال النموذج إلى Edge Function create-appointment
