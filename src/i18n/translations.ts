@@ -98,9 +98,52 @@ export const translations = {
         UNKNOWN_ERROR: 'حدث خطأ غير متوقع'
       }
 
+    },
+
+      manage: {  
+        title: 'إدارة الموعد',  
+        current_appointment: 'موعدك الحالي',  
+        name: 'الاسم',  
+        date: 'التاريخ',  
+        time: 'الوقت',  
+        reason: 'السبب',  
+        cancel_button: 'إلغاء الموعد',  
+        reschedule_button: 'إعادة جدولة الموعد',  
+        cancelled_button: 'تم الإلغاء',  
+        appointment_cancelled: 'تم إلغاء هذا الموعد',  
+        confirm_title: 'تأكيد الإلغاء',  
+        confirm_text: 'هل أنت متأكد من إلغاء هذا الموعد؟ لا يمكن التراجع عن هذا الإجراء.',  
+        modal_cancel_btn: 'لا، الغِ',  
+        modal_confirm_btn: 'نعم، إلغاء الموعد',  
+        cancelling: 'جاري إلغاء الموعد...',  
+        cancel_success: 'تم إلغاء الموعد بنجاح',  
+        cancel_error: 'حدث خطأ أثناء محاولة الإلغاء',  
+        not_available_after: 'غير متاح بعد الإلغاء',  
+        success_cancelled: 'تم إلغاء الموعد بنجاح',  
+        already_processed: 'تمت معالجة هذا الموعد مسبقًا',  
+        cancel_failed: 'حدث خطأ أثناء محاولة الإلغاء، حاول مرة أخرى'  
+    },  
+
+      reschedule: {
+
+        title: 'إعادة جدولة الموعد',
+        current_appointment: 'موعدك الحالي',
+        name: 'الاسم',
+        date: 'التاريخ',
+        time: 'الوقت',
+        reason: 'السبب',
+        submit_button: 'تأكيد التعديل',
+        success_message: 'تم تعديل الموعد بنجاح',
+        error_message: 'حدث خطأ أثناء محاولة التعديل',
+        submitting: 'جاري تعديل الموعد...',
+        invalid_link: 'الرابط غير صالح أو انتهت صلاحيته',
+        already_cancelled: 'تم إلغاء هذا الموعد مسبقاً',
+        already_modified: 'تم تعديل هذا الموعد من قبل. إذا كنت ترغب بتغيير موعدك يرجى إلغاء هذا الموعد وتسجيل حجز جديد',
+
     }
 
-  },
+},
+  
 
   en: {
 
@@ -201,9 +244,51 @@ export const translations = {
         UNKNOWN_ERROR: 'Unexpected error occurred'
       }
 
-    }
+      },
 
-  }
+      manage: {  
+       title: 'Manage Appointment',  
+       current_appointment: 'Your Current Appointment',  
+       name: 'Name',  
+       date: 'Date',  
+       time: 'Time',  
+       reason: 'Reason',  
+       cancel_button: 'Cancel Appointment',  
+       reschedule_button: 'Reschedule Appointment',  
+       cancelled_button: 'Cancelled',  
+       appointment_cancelled: 'This appointment has been cancelled',  
+       confirm_title: 'Confirm Cancellation',  
+       confirm_text: 'Are you sure you want to cancel this appointment? This action cannot be undone.',  
+       modal_cancel_btn: 'No, keep it',  
+       modal_confirm_btn: 'Yes, cancel appointment',  
+       cancelling: 'Cancelling appointment...',  
+       cancel_success: 'Appointment cancelled successfully',  
+       cancel_error: 'An error occurred while trying to cancel',  
+       not_available_after: 'Not available after cancellation',  
+       success_cancelled: 'Appointment cancelled successfully',  
+       already_processed: 'This appointment has already been processed',  
+       cancel_failed: 'An error occurred while trying to cancel, please try again'  
+     },  
+
+     reschedule: {
+
+       title: 'Reschedule Appointment',
+       current_appointment: 'Your Current Appointment',
+       name: 'Name',
+       date: 'Date',
+       time: 'Time',
+       reason: 'Reason',
+       submit_button: 'Confirm Reschedule',
+       success_message: 'Appointment rescheduled successfully',
+       error_message: 'An error occurred while rescheduling',
+       submitting: 'Rescheduling appointment...',
+       invalid_link: 'The link is invalid or has expired',
+       already_cancelled: 'This appointment has already been cancelled',
+       already_modified: 'This appointment has already been modified. If you wish to change your appointment, please cancel this one and book a new one',
+
+     }
+    
+   }
 
 } as const;
 
