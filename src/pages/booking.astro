@@ -210,7 +210,7 @@ error_UNKNOWN_ERROR
   const locale = document.documentElement.lang?.startsWith('ar') ? 'ar-EG' : 'en-US';
   const isArabic = locale.startsWith('ar');
 
-  const t = {
+  const i18n = {
     dateTriggerDefault,
     timeTriggerDefault,
     selectDateFirst,
@@ -254,8 +254,8 @@ error_UNKNOWN_ERROR
   function resetPickers() {
     selectedDate = '';
     selectedTime = '';
-    document.getElementById('date-trigger').textContent = t.dateTriggerDefault;
-    document.getElementById('time-trigger').textContent  = t.timeTriggerDefault;
+    document.getElementById('date-trigger').textContent = i18n.dateTriggerDefault;
+    document.getElementById('time-trigger').textContent  = i18n.timeTriggerDefault;
     document.getElementById('datetime').value = '';
     document.querySelectorAll('.scroll-item.selected').forEach(el => el.classList.remove('selected'));
     document.getElementById('date-dropdown')?.classList.add('hidden');
@@ -270,7 +270,7 @@ error_UNKNOWN_ERROR
     hideMessage();
 
     if (!selectedDate || !selectedTime) {
-      showMessage(t.missingDateTime, 'error');
+      showMessage(i18n.missingDateTime, 'error');
       return;
     }
 
@@ -282,7 +282,7 @@ error_UNKNOWN_ERROR
       datetime:  `${selectedDate}T${selectedTime}:00`
     };
 
-    showMessage(t.sending, 'info');
+    showMessage(i18n.sending, 'info');
 
     try {
       const res = await fetch(CREATE_APPOINTMENT_URL, {
@@ -310,7 +310,7 @@ error_UNKNOWN_ERROR
     } catch (err) {
       console.error('خطأ أثناء إرسال الحجز:', err);
       showMessage(
-      t.error_UNKNOWN_ERROR,'error');
+      i18n.error_UNKNOWN_ERROR,'error');
        }
    });
 
@@ -322,7 +322,7 @@ error_UNKNOWN_ERROR
   const dateScroll   = document.getElementById('date-scroll');
 
   async function generateDates() {
-    dateScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+    dateScroll.innerHTML = `<div class="scroll-item disabled">${i18n.loadingAppointments}</div>`;
 
     try {
       let available_dates = [];
@@ -356,7 +356,7 @@ if (availableDatesCache) {
       dateScroll.innerHTML = '';
 
       if (available_dates.length === 0) {
-        dateScroll.innerHTML = `<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
+        dateScroll.innerHTML = `<div class="scroll-item disabled">${i18n.noAppointmentsDays}</div>`;
         return;
       }
 
@@ -389,7 +389,7 @@ if (availableDatesCache) {
       }
     } catch (err) {
       console.error('خطأ تحميل التواريخ:', err);
-      dateScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;;
+      dateScroll.innerHTML = `<div class="scroll-item disabled">${i18n.fetchError}</div>`;;
     }
   }
 
@@ -408,7 +408,7 @@ if (availableDatesCache) {
   } else {
 
     dateOriginalText = dateTrigger.textContent;
-    dateTrigger.textContent = t.loadingAppointments;
+    dateTrigger.textContent = i18n.loadingAppointments;
 
     await generateDates();
 
@@ -477,10 +477,10 @@ generateTimes();
   const timeScroll   = document.getElementById('time-scroll');
 
   async function generateTimes() {
-    timeScroll.innerHTML = `<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+    timeScroll.innerHTML = `<div class="scroll-item disabled">${i18n.loadingAppointments}</div>`;
 
     if (!selectedDate) {
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${i18n.selectDateFirst}</div>`;
       return;
     }
 
@@ -515,7 +515,7 @@ generateTimes();
       timeScroll.innerHTML = '';
 
       if (available_times.length === 0) {
-        timeScroll.innerHTML = `<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
+        timeScroll.innerHTML = `<div class="scroll-item disabled">${i18n.noTimesAvailable}</div>`;
         return;
       }
 
@@ -559,7 +559,7 @@ generateTimes();
       }
     } catch (err) {
       console.error('خطأ تحميل الأوقات:', err);
-      timeScroll.innerHTML = `<div class="scroll-item disabled">${t.fetchError}</div>`;
+      timeScroll.innerHTML = `<div class="scroll-item disabled">${i18n.fetchError}</div>`;
     }
   }
 
@@ -578,7 +578,7 @@ generateTimes();
   } else {
 
     timeOriginalText = timeTrigger.textContent;
-    timeTrigger.textContent = t.loadingAppointments;
+    timeTrigger.textContent = i18n.loadingAppointments;
 
     await generateTimes();
 
@@ -630,14 +630,14 @@ if (selectedTime) {
     dateDropdown.classList.add('hidden');
 
     // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
-    if (dateTrigger.textContent === t.loadingAppointments) {
+    if (dateTrigger.textContent === i18n.loadingAppointments) {
       if (selectedDate) {
         const selectedItem = dateScroll.querySelector(`[data-value="${selectedDate}"]`);
         if (selectedItem) {
           dateTrigger.textContent = selectedItem.textContent;
         }
       } else {
-        dateTrigger.textContent = t.dateTriggerDefault;
+        dateTrigger.textContent = i18n.dateTriggerDefault;
       }
     }
   }
@@ -646,14 +646,14 @@ if (selectedTime) {
     timeDropdown.classList.add('hidden');
 
     // إعادة النص فقط إذا كانت رسالة التحميل ظاهرة
-    if (timeTrigger.textContent === t.loadingAppointments) {
+    if (timeTrigger.textContent === i18n.loadingAppointments) {
       if (selectedTime) {
         const selectedItem = timeScroll.querySelector(`[data-value="${selectedTime}"]`);
         if (selectedItem) {
           timeTrigger.textContent = selectedItem.textContent;
         }
       } else {
-        timeTrigger.textContent = t.timeTriggerDefault;
+        timeTrigger.textContent = i18n.timeTriggerDefault;
       }
     }
   }
