@@ -11,6 +11,7 @@ const { token } = Astro.params;
 const env = locals.runtime.env;
 const supabaseUrl = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
 const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = env.PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('Missing Supabase configuration in environment variables');
@@ -161,7 +162,7 @@ const formattedTime = appointment.date_time
 
     <div class="actions">
       <a
-        href={`/en/reschedule/${token}`}                    // تعديل لغة
+        href={`/en/reschedule/${token}`}                            //تغيير href مع تغيير اللغة
         class="btn reschedule"
         id="rescheduleLink"
       >
@@ -197,40 +198,24 @@ const formattedTime = appointment.date_time
     </div>
   </div>
 
-  <script>
+   <script define:vars={{
+  cancellingText,
+  cancelSuccessText,
+  cancelErrorText,
+  cancelledButtonText,
+  notAvailableText,
+  cancelButtonText,
+  anonKey,
+  supabaseUrl
+}}>
+
     const cancelButton   = document.getElementById('cancelButton');
     const rescheduleLink = document.getElementById('rescheduleLink');
     const messageDiv     = document.getElementById('cancelMessage');
     const modal          = document.getElementById('cancelModal');
 
-    const locale = document.documentElement.lang || 'ar';
-    const isArabic = locale.startsWith('ar');
+        
 
-    // نصوص ثابتة مباشرة (بدون حقن من Astro)
-    const txtCancelling          = isArabic ? 'جاري الإلغاء...'                : 'Cancelling...';
-    const txtCancelSuccess       = isArabic ? 'تم إلغاء الموعد بنجاح'          : 'Appointment cancelled successfully';
-    const txtCancelError         = isArabic ? 'حدث خطأ أثناء الإلغاء'          : 'An error occurred while cancelling';
-    const txtCancelledButton     = isArabic ? 'تم الإلغاء'                     : 'Cancelled';
-    const txtNotAvailable        = isArabic ? 'غير متاح بعد الإلغاء'           : 'Not available after cancellation';
-    const txtOriginalCancelBtn   = isArabic ? 'إلغاء الموعد'                   : 'Cancel Appointment';
-    const txtModalTitle          = isArabic ? 'تأكيد الإلغاء'                  : 'Confirm Cancellation';
-    const txtModalText           = isArabic ? 'هل أنت متأكد من إلغاء هذا الموعد؟' : 'Are you sure you want to cancel this appointment?';
-    const txtModalCancelBtn      = isArabic ? 'لا، تراجع'                      : 'No, go back';
-    const txtModalConfirmBtn     = isArabic ? 'نعم، ألغِ'                      : 'Yes, cancel';
-
-    // تحديث نصوص المودال عند التحميل (اختياري لكن يضمن التوافق)
-    if (document.getElementById('modalTitle')) {
-        document.getElementById('modalTitle').textContent = txtModalTitle;
-    }
-    if (document.getElementById('modalText')) {
-        document.getElementById('modalText').textContent = txtModalText;
-    }
-    if (document.getElementById('modalCancelBtn')) {
-        document.getElementById('modalCancelBtn').textContent = txtModalCancelBtn;
-    }
-    if (document.getElementById('modalConfirmBtn')) {
-        document.getElementById('modalConfirmBtn').textContent = txtModalConfirmBtn;
-    }
 
     function showCancelModal() {
         modal.classList.add('show');
@@ -257,11 +242,11 @@ const formattedTime = appointment.date_time
         hideCancelModal();
 
         messageDiv.className = 'alert info';
-        messageDiv.textContent = txtCancelling;
+        messageDiv.textContent = cancellingText;
         messageDiv.classList.remove('hidden');
 
         cancelButton.disabled = true;
-        cancelButton.textContent = txtCancelling;
+        cancelButton.textContent = cancellingText;
 
         // تعطيل رابط إعادة الجدولة مؤقتاً
         if (rescheduleLink) {
@@ -276,24 +261,35 @@ const formattedTime = appointment.date_time
 
             const lang = document.documentElement.lang || 'ar';
 
-            const response = await fetch(`/api/cancel?lang=${lang}`, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(
+           `${supabaseUrl}/functions/v1/create-appointment`,
+           {
+           method: "POST",
+           headers: {
+          "Content-Type": "application/json",
+          "apikey": anonKey
+         },
+          body: JSON.stringify({
+          booking_id: cancelButton.dataset.bookingId,
+          token: cancelButton.dataset.token,
+          cancel: true
+         })
+         }
+         );
 
             const result = await response.json();
 
             if (response.ok) {
                 messageDiv.className = 'alert success';
-                messageDiv.textContent = txtCancelSuccess;
+                messageDiv.textContent = cancelSuccessText;
 
-                cancelButton.textContent = txtCancelledButton;
+                cancelButton.textContent = cancelledButtonText;
                 cancelButton.disabled = true;
 
                 if (rescheduleLink) {
                     rescheduleLink.style.pointerEvents = 'none';
                     rescheduleLink.style.opacity = '0.5';
-                    rescheduleLink.textContent = txtNotAvailable;
+                    rescheduleLink.textContent = notAvailableText;
                     rescheduleLink.removeAttribute('href');
                 }
 
@@ -302,19 +298,19 @@ const formattedTime = appointment.date_time
                 if (currentSection && !currentSection.querySelector('.cancelled-notice-extra')) {
                     currentSection.insertAdjacentHTML('beforeend', `
                         <p class="cancelled-notice cancelled-notice-extra">
-                            ${txtCancelSuccess}
+                            ${cancelSuccessText}
                         </p>
                     `);
                 }
             } else {
-                throw new Error(result.error || txtCancelError);
+                throw new Error(result.error || cancelErrorText);
             }
         } catch (err) {
             messageDiv.className = 'alert error';
-            messageDiv.textContent = err.message || txtCancelError;
+            messageDiv.textContent = err.message || cancelErrorText;
 
             cancelButton.disabled = false;
-            cancelButton.textContent = txtOriginalCancelBtn;
+            cancelButton.textContent = cancelButtonText;
 
             if (rescheduleLink) {
                 rescheduleLink.style.pointerEvents = 'auto';
