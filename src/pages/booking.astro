@@ -18,6 +18,10 @@ const dateLabel           = t('booking.date');
 const timeLabel           = t('booking.time');
 const submitButton        = t('buttons.submit');
 
+const emailNotice         = t('validation.email_notice');
+const validationRequired  = t('validation.required');
+const validationNameShort = t('validation.name_short');
+
 const selectDateFirst     = t('booking.select_date_first');
 const noTimesAvailable    = t('booking.no_times_available');
 const dateTriggerDefault  = t('booking.date_trigger_default');
@@ -57,15 +61,8 @@ const error_UNKNOWN_ERROR = t('booking.errors.UNKNOWN_ERROR');
       placeholder={fullNamePlaceholder} 
       maxlength="40" 
       minlength="3"
-      oninvalid="
-      if(this.validity.valueMissing){
-      this.setCustomValidity('يجب ملء هذا الحقل');
-      }
-      else if(this.validity.tooShort){
-      this.setCustomValidity('يجب ألا يقل الاسم عن ٣ حروف');
-      }"
-      oninput="this.setCustomValidity('');
-      this.checkValidity();"
+      oninvalid="handleValidation(this)"
+      oninput="this.setCustomValidity('')"
     />
   </div>
 
@@ -90,7 +87,7 @@ const error_UNKNOWN_ERROR = t('booking.errors.UNKNOWN_ERROR');
       this.checkValidity();"
     />
     <div class="text_under_input">
-      سيتم ارسال رسالة الى بريدك الالكتروني
+        {emailNotice}
     </div>
   </div>
 
@@ -195,7 +192,9 @@ error_TIME_ALREADY_BOOKED,
 error_TIME_NOT_AVAILABLE,
 error_PAST_DATE,
 error_INVALID_EMAIL,
-error_UNKNOWN_ERROR
+error_UNKNOWN_ERROR,
+validationRequired,
+validationNameShort
 }}>
 
   const CREATE_APPOINTMENT_URL = `${SUPABASE_URL}/functions/v1/create-appointment`;
@@ -230,7 +229,10 @@ error_UNKNOWN_ERROR
     error_TIME_NOT_AVAILABLE,
     error_PAST_DATE,
     error_INVALID_EMAIL,
-    error_UNKNOWN_ERROR
+    error_UNKNOWN_ERROR,
+
+    validationRequired,
+    validationNameShort
   };
 
   let selectedDate = '';
@@ -261,6 +263,18 @@ error_UNKNOWN_ERROR
     document.getElementById('date-dropdown')?.classList.add('hidden');
     document.getElementById('time-dropdown')?.classList.add('hidden');
   }
+
+  function handleValidation(input){
+
+  if(input.validity.valueMissing){
+    input.setCustomValidity(i18n.validationRequired);
+  }
+
+  else if(input.validity.tooShort){
+    input.setCustomValidity(i18n.validationNameShort);
+  }
+
+}
 
   // =============================================================
   // إرسال النموذج إلى Edge Function create-appointment
