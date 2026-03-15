@@ -202,6 +202,7 @@ error_UNKNOWN_ERROR
   const AVAILABILITY_URL = `${SUPABASE_URL}/functions/v1/check-booked-times`;
  
   let availableDatesCache = null;
+  let availableTimesCache = {};
 
   const form = document.getElementById('bookingForm');
   const messageDiv = document.getElementById('message');
@@ -351,7 +352,6 @@ if (availableDatesCache) {
 
 }
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       dateScroll.innerHTML = '';
 
@@ -485,18 +485,32 @@ generateTimes();
     }
 
     try {
+         let available_times = [];
+
+        if (availableTimesCache[selectedDate]) {
+
+       available_times = availableTimesCache[selectedDate];
+
+     } else {
+
       const res = await fetch(AVAILABILITY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query_type: "available_times_for_date",
-          date: selectedDate
-        })
-      });
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+      query_type: "available_times_for_date",
+      date: selectedDate
+     })
+   });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const { available_times = [] } = await res.json();
+      const data = await res.json();
+
+      available_times = data.available_times || [];
+
+      availableTimesCache[selectedDate] = available_times;
+
+   }
 
       timeScroll.innerHTML = '';
 
