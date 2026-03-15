@@ -1144,3 +1144,125 @@ WHERE status IN ('pending','rescheduled','confirmed');
 
 
 
+
+// ======================
+// Supabase Tables Schema 
+// ======================
+
+// 1. appointments
+
+create table public.appointments (
+  id uuid not null default gen_random_uuid (),
+  created_at timestamp with time zone not null default now(),
+  user_id uuid null default auth.uid (),
+  full_name text null,
+  email text null,
+  phone text null,
+  reason text null,
+  status text null default 'confirmed'::text,
+  manage_token uuid null default gen_random_uuid (),
+  manage_token_expires_at timestamp with time zone null default (now() + '16 days'::interval),
+  reminder_sent_6h boolean null default false,
+  date_time timestamp with time zone null,
+  constraint time_pkey primary key (id),
+  constraint appointments_manage_token_key unique (manage_token),
+  constraint time_email_check check ((length(email) <= 40)),
+  constraint time_full_name_check check ((length(full_name) <= 40)),
+  constraint time_phone_check check ((length(phone) <= 20)),
+  constraint time_reason_check check ((length(reason) <= 500))
+) TABLESPACE pg_default;
+
+create unique INDEX IF not exists unique_active_appointments on public.appointments using btree (date_time) TABLESPACE pg_default
+where
+  (
+    status = any (
+      array[
+        'pending'::text,
+        'rescheduled'::text,
+        'confirmed'::text
+      ]
+    )
+  );
+
+create index IF not exists idx_reminder_lookup on public.appointments using btree (date_time) TABLESPACE pg_default
+where
+  (
+    (reminder_sent_6h = false)
+    and (email is not null)
+    and (
+      status = any (array['confirmed'::text, 'rescheduled'::text])
+    )
+  );
+
+
+
+
+
+
+// 2. business_settings 
+
+create table public.business_settings (
+  id integer not null default 1,
+  timezone text not null default 'Africa/Cairo'::text,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  booking_days_ahead integer null default 15,
+  min_booking_notice_minutes integer null default 60,
+  constraint business_settings_pkey primary key (id),
+  constraint business_settings_id_check check ((id = 1))
+) TABLESPACE pg_default;
+
+create unique INDEX IF not exists only_one_business_settings on public.business_settings using btree (id) TABLESPACE pg_default;
+
+
+
+// 3. off_days
+
+create table public.off_days (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  date date not null,
+  description text null,
+  created_at timestamp with time zone null default now(),
+  constraint off_days_pkey primary key (id),
+  constraint off_days_date_key unique (date)
+) TABLESPACE pg_default;
+
+
+
+
+// 4. working_hours
+
+create table public.working_hours (
+  id bigserial not null,
+  day_of_week smallint not null,
+  is_open boolean null default true,
+  end_time time without time zone null,
+  slot_duration_minutes smallint null default 15,
+  break_start time without time zone null,
+  break_end time without time zone null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  start_time time without time zone null,
+  constraint working_hours_pkey primary key (id),
+  constraint working_hours_day_of_week_key unique (day_of_week),
+  constraint working_hours_day_of_week_check check (
+    (
+      (day_of_week >= 0)
+      and (day_of_week <= 6)
+    )
+  ),
+  constraint working_hours_slot_duration_minutes_check check (
+    (
+      slot_duration_minutes = any (array[5, 10, 15, 20, 30, 60])
+    )
+  )
+) TABLESPACE pg_default;
+
+
+
+
+
+
+
+
+
