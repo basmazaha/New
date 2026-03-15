@@ -1090,3 +1090,57 @@ BREVO_API_KEY
 APP_BASE_URL	     // your domain
 
 REMINDER_SECRET    // used by cron job to invoke reminder email
+
+
+
+
+// ======================
+// Useful SQL 
+// ======================
+
+// Table Constraints Overview
+
+SELECT 
+tc.constraint_name,
+tc.constraint_type,
+tc.table_name,
+string_agg(kcu.column_name, ', ') AS columns_involved,
+cc.check_clause,                          -- لو check constraint
+pg_get_constraintdef(con.oid) AS full_definition   -- وصف كامل للـ constraint (مفيد جدًا لـ exclusion أو complex)
+FROM information_schema.table_constraints tc
+LEFT JOIN information_schema.key_column_usage kcu 
+ ON tc.constraint_name = kcu.constraint_name 
+AND tc.table_schema = kcu.table_schema
+LEFT JOIN information_schema.check_constraints cc 
+ ON tc.constraint_name = cc.constraint_name
+AND tc.table_schema = cc.constraint_schema
+LEFT JOIN pg_constraint con 
+ON con.conname = tc.constraint_name 
+AND con.connamespace = (SELECT oid FROM pg_namespace WHERE nspname = tc.table_schema)
+WHERE tc.table_schema = 'public'              -- غالبًا public في Supabase
+AND tc.table_name = 'appointments'          -- غيّر هنا باسم الجدول اللي عايزه
+GROUP BY 
+tc.constraint_name, 
+tc.constraint_type, 
+tc.table_name, 
+cc.check_clause,
+con.oid
+ORDER BY tc.constraint_type, tc.constraint_name;
+
+
+// prevent double booking
+
+CREATE UNIQUE INDEX unique_active_appointments
+ON appointments (date_time)
+WHERE status IN ('pending','rescheduled','confirmed');
+
+
+
+
+
+
+
+
+
+
+
