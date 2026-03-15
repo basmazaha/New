@@ -1135,7 +1135,13 @@ ON appointments (date_time)
 WHERE status IN ('pending','rescheduled','confirmed');
 
 
+//  Look Up index for reminder email
 
+create index idx_reminder_lookup
+on appointments (date_time)
+where reminder_sent_6h = false
+and email is not null
+and status in ('confirmed','rescheduled');
 
 
 
