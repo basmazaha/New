@@ -279,6 +279,9 @@ let selectedTime = '';
 let dateOriginalText = '';
 let timeOriginalText = '';
 
+let availableDatesCache = null;
+let availableTimesCache = {};
+
 function showMessage(text, type = 'info') {
 
 messageDiv.classList.remove(
@@ -404,22 +407,35 @@ dateScroll.innerHTML =
 
 try {
 
-const res = await fetch(
-AVAILABILITY_URL,
-{
-method: 'POST',
-headers: {
-'Content-Type': 'application/json'
-},
-body: JSON.stringify({
-query_type: "available_dates_next_days",
-days: 15
-})
-}
-);
+let available_dates = [];
 
-const { available_dates = [] } =
-await res.json();
+if (availableDatesCache) {
+
+  available_dates = availableDatesCache;
+
+} else {
+
+  const res = await fetch(
+    AVAILABILITY_URL,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query_type: "available_dates_next_days",
+        days: 15
+      })
+    }
+  );
+
+  const data = await res.json();
+
+  available_dates = data.available_dates || [];
+
+  availableDatesCache = available_dates;
+
+}
 
 dateScroll.innerHTML = '';
 
@@ -585,22 +601,35 @@ return;
 
 try {
 
-const res = await fetch(
-AVAILABILITY_URL,
-{
-method: 'POST',
-headers: {
-'Content-Type': 'application/json'
-},
-body: JSON.stringify({
-query_type: "available_times_for_date",
-date: selectedDate
-})
-}
-);
+let available_times = [];
 
-const { available_times = [] } =
-await res.json();
+if (availableTimesCache[selectedDate]) {
+
+  available_times = availableTimesCache[selectedDate];
+
+} else {
+
+  const res = await fetch(
+    AVAILABILITY_URL,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query_type: "available_times_for_date",
+        date: selectedDate
+      })
+    }
+  );
+
+  const data = await res.json();
+
+  available_times = data.available_times || [];
+
+  availableTimesCache[selectedDate] = available_times;
+
+}
 
 timeScroll.innerHTML = '';
 
