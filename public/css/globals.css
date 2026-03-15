@@ -171,7 +171,7 @@ body {
 
   width: 100%;
 
-  padding: .75rem 1rem;
+  padding: 1rem;
 
   border: 1px solid var(--border); 
 
@@ -254,7 +254,7 @@ body {
 
 .custom-picker-trigger {
 
-  padding: .75rem 1rem;
+  padding: 1rem;
 
   border: 1px solid var(--border);
 
@@ -388,7 +388,7 @@ body {
 
   margin-top: .5rem;
 
-  padding: .8rem;
+  padding: 1rem;
 
   border: none;
 
