@@ -106,6 +106,14 @@ const selectDateFirst    = t('booking.select_date_first');
 const noTimesAvailable   = t('booking.no_times_available');
 const dateTriggerDefault = t('booking.date_trigger_default');
 const timeTriggerDefault = t('booking.time_trigger_default');
+
+const noAppointmentsDays  = t('booking.ui.no_appointments_days');
+const fetchError          = t('booking.ui.fetch_error');
+const sending             = t('booking.ui.sending');
+const missingDateTime     = t('booking.ui.missing_datetime');
+const loadingAppointments = t('booking.ui.loading_appointments');
+
+const submitting          = t('reschedule.submitting');
 ---
 
 <BaseLayout title={pageTitle}>
@@ -223,7 +231,18 @@ data-error-msg={errorMsg}
 
 </section>
 
-<script>
+<script define:vars={{
+  dateTriggerDefault,
+  timeTriggerDefault,
+  selectDateFirst,
+  noTimesAvailable,
+  noAppointmentsDays,
+  fetchError,
+  sending,
+  missingDateTime,
+  loadingAppointments,
+  submitting
+}}>
 
 const CREATE_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/create-appointment`;
 const AVAILABILITY_URL = `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/check-booked-times`;
@@ -238,41 +257,17 @@ const errorMsgBase = messageDiv.dataset.errorMsg;
 const locale = document.documentElement.lang || 'ar';
 const isArabic = locale.startsWith('ar');
 
-const t = {
-
-dateTriggerDefault:
-isArabic ? 'اختر التاريخ ←' : 'Choose date ←',
-
-timeTriggerDefault:
-isArabic ? 'اختر الوقت ←' : 'Choose time ←',
-
-selectDateFirst:
-isArabic ? 'اختر التاريخ أولاً' : 'Select date first',
-
-noTimesAvailable:
-isArabic ? 'لا توجد مواعيد متاحة' : 'No times available',
-
-noAppointmentsDays:
-isArabic
-? 'لا توجد مواعيد متاحة في الفترة القادمة'
-: 'No appointments available in the upcoming days',
-
-fetchError:
-isArabic ? 'خطأ في جلب المواعيد' : 'Failed to load appointments',
-
-sending:
-isArabic ? 'جاري الإرسال...' : 'Submitting...',
-
-missingDateTime:
-isArabic
-? 'يرجى اختيار التاريخ والوقت'
-: 'Please select date and time',
-
-loadingAppointments:
-isArabic
-? 'جاري تحميل المواعيد...'
-: 'Loading appointments...'
-
+const i18n = {
+  dateTriggerDefault,
+  timeTriggerDefault,
+  selectDateFirst,
+  noTimesAvailable,
+  noAppointmentsDays,
+  fetchError,
+  sending,
+  missingDateTime,
+  loadingAppointments,
+  submitting
 };
 
 let selectedDate = '';
@@ -311,10 +306,10 @@ selectedDate = '';
 selectedTime = '';
 
 document.getElementById('date-trigger').textContent =
-t.dateTriggerDefault;
+i18n.dateTriggerDefault;
 
 document.getElementById('time-trigger').textContent =
-t.timeTriggerDefault;
+i18n.timeTriggerDefault;
 
 document.getElementById('datetime').value = '';
 
@@ -332,7 +327,7 @@ hideMessage();
 
 if (!selectedDate || !selectedTime) {
 
-showMessage(t.missingDateTime, 'error');
+showMessage(i18n.missingDateTime, 'error');
 
 return;
 
@@ -346,7 +341,7 @@ const payload = {
   datetime: `${selectedDate}T${selectedTime}:00`
 };
 
-showMessage(t.sending);
+showMessage(i18n.submitting);
 
 try {
 
@@ -402,7 +397,7 @@ const dateScroll = document.getElementById('date-scroll');
 async function generateDates() {
 
 dateScroll.innerHTML =
-`<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+`<div class="scroll-item disabled">${i18n.loadingAppointments}</div>`;
 
 try {
 
@@ -428,7 +423,7 @@ dateScroll.innerHTML = '';
 if (available_dates.length === 0) {
 
 dateScroll.innerHTML =
-`<div class="scroll-item disabled">${t.noAppointmentsDays}</div>`;
+`<div class="scroll-item disabled">${i18n.noAppointmentsDays}</div>`;
 
 return;
 
@@ -490,7 +485,7 @@ block: 'center'
 catch {
 
 dateScroll.innerHTML =
-`<div class="scroll-item disabled">${t.fetchError}</div>`;
+`<div class="scroll-item disabled">${i18n.fetchError}</div>`;
 
 }
 
@@ -518,7 +513,7 @@ dateOriginalText =
 dateTrigger.textContent;
 
 dateTrigger.textContent =
-t.loadingAppointments;
+i18n.loadingAppointments;
 
 await generateDates();
 
@@ -556,7 +551,7 @@ dateDropdown.classList.add('hidden');
 /* reset الوقت عند تغيير التاريخ */
 selectedTime = '';
 document.getElementById('time-trigger').textContent =
-t.timeTriggerDefault;
+i18n.timeTriggerDefault;
 
 generateTimes();
 
@@ -574,12 +569,12 @@ document.getElementById('time-scroll');
 async function generateTimes() {
 
 timeScroll.innerHTML =
-`<div class="scroll-item disabled">${t.loadingAppointments}</div>`;
+`<div class="scroll-item disabled">${i18n.loadingAppointments}</div>`;
 
 if (!selectedDate) {
 
 timeScroll.innerHTML =
-`<div class="scroll-item disabled">${t.selectDateFirst}</div>`;
+`<div class="scroll-item disabled">${i18n.selectDateFirst}</div>`;
 
 return;
 
@@ -609,7 +604,7 @@ timeScroll.innerHTML = '';
 if (available_times.length === 0) {
 
 timeScroll.innerHTML =
-`<div class="scroll-item disabled">${t.noTimesAvailable}</div>`;
+`<div class="scroll-item disabled">${i18n.noTimesAvailable}</div>`;
 
 return;
 
@@ -693,7 +688,7 @@ block: 'center'
 catch {
 
 timeScroll.innerHTML =
-`<div class="scroll-item disabled">${t.fetchError}</div>`;
+`<div class="scroll-item disabled">${i18n.fetchError}</div>`;
 
 }
 
