@@ -145,6 +145,14 @@ export const translations = {
       description: 'Get the latest news and offers directly in your inbox'
     },
 
+    validation: {
+      required: "This field is required",
+      name_short: "The name must be at least 3 characters long",
+      email_invalid: "Please enter a valid email address",
+      phone_invalid: "Please enter a valid phone number",
+      email_notice: "A confirmation email will be sent to your inbox"
+    },
+
     booking: {
 
       title: 'Book an Appointment',
