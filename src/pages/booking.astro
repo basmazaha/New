@@ -264,7 +264,7 @@ validationNameShort
     document.getElementById('time-dropdown')?.classList.add('hidden');
   }
 
-  function handleValidation(input){
+  window.handleValidation = function(input){
 
   if(input.validity.valueMissing){
     input.setCustomValidity(i18n.validationRequired);
