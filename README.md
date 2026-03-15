@@ -1155,6 +1155,10 @@ and status in ('confirmed','rescheduled');
 // Supabase Tables Schema 
 // ======================
 
+// Run this code first 
+
+create extension if not exists "uuid-ossp";
+
 // 1. appointments
 
 create table public.appointments (
