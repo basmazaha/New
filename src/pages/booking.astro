@@ -21,6 +21,8 @@ const submitButton        = t('buttons.submit');
 const emailNotice         = t('validation.email_notice');
 const validationRequired  = t('validation.required');
 const validationNameShort = t('validation.name_short');
+const validationEmailInvalid = t('validation.email_invalid');
+const validationPhoneInvalid = t('validation.phone_invalid');
 
 const selectDateFirst     = t('booking.select_date_first');
 const noTimesAvailable    = t('booking.no_times_available');
@@ -76,15 +78,8 @@ const error_UNKNOWN_ERROR = t('booking.errors.UNKNOWN_ERROR');
       placeholder={emailPlaceholder} 
       autocomplete="email" 
       maxlength="70"
-      oninvalid="
-      if(this.validity.valueMissing){
-      this.setCustomValidity('يجب ملء هذا الحقل');
-      }
-      else if(this.validity.typeMismatch){
-      this.setCustomValidity('يرجى كتابة بريد الكتروني صالح');
-      }"
-      oninput="this.setCustomValidity('');
-      this.checkValidity();"
+      oninvalid="handleValidation(this)"
+      oninput="clearValidation(this)"
     />
     <div class="text_under_input">
         {emailNotice}
@@ -102,15 +97,8 @@ const error_UNKNOWN_ERROR = t('booking.errors.UNKNOWN_ERROR');
       autocomplete="tel" 
       inputmode="numeric" 
       pattern="[0-9+]{8,20}"
-      oninvalid="
-      if(this.validity.valueMissing){
-      this.setCustomValidity('يجب ملء هذا الحقل');
-      } 
-      else if(this.validity.patternMismatch){
-      this.setCustomValidity('يرجى كتابة رقم هاتف صالح');
-      }"
-      oninput="this.setCustomValidity('');
-      this.checkValidity();"
+      oninvalid="handleValidation(this)"
+      oninput="clearValidation(this)"
     />
   </div>
 
@@ -194,7 +182,9 @@ error_PAST_DATE,
 error_INVALID_EMAIL,
 error_UNKNOWN_ERROR,
 validationRequired,
-validationNameShort
+validationNameShort,
+validationEmailInvalid,
+validationPhoneInvalid
 }}>
 
   const CREATE_APPOINTMENT_URL = `${SUPABASE_URL}/functions/v1/create-appointment`;
@@ -232,7 +222,9 @@ validationNameShort
     error_UNKNOWN_ERROR,
 
     validationRequired,
-    validationNameShort
+    validationNameShort,
+    validationEmailInvalid,
+    validationPhoneInvalid,
   };
 
   let selectedDate = '';
@@ -272,6 +264,14 @@ validationNameShort
 
   else if(input.validity.tooShort){
     input.setCustomValidity(i18n.validationNameShort);
+  }
+
+  else if(input.validity.typeMismatch){
+    input.setCustomValidity(i18n.validationEmailInvalid);
+  }
+
+  else if(input.validity.patternMismatch){
+    input.setCustomValidity(i18n.validationPhoneInvalid);
   }
 
 }
